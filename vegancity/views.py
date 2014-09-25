@@ -23,7 +23,6 @@ from django.shortcuts import render_to_response, get_object_or_404, redirect
 from django.template import RequestContext
 from django.core.urlresolvers import reverse
 from django.contrib.auth.decorators import login_required
-from django.db.models import Avg
 from django.contrib.auth import authenticate, login
 from django.contrib import messages
 from django.views.generic import DetailView, TemplateView
@@ -66,14 +65,14 @@ def _get_home_context(request):
     annotated_vendor_select = (
         lambda query_prefix:
         Vendor.objects.raw(
-        """
-        SELECT V.id, V.name
-        FROM vegancity_vendor V LEFT OUTER JOIN vegancity_review R
-        ON V.id = R.vendor_id
-        WHERE V.approval_status = 'approved' AND R.approved='t'
-        %s
-        LIMIT 5
-        """ % query_prefix))
+            """
+            SELECT V.id, V.name
+            FROM vegancity_vendor V LEFT OUTER JOIN vegancity_review R
+            ON V.id = R.vendor_id
+            WHERE V.approval_status = 'approved' AND R.approved='t'
+            %s
+            LIMIT 5
+            """ % query_prefix))
 
     top_5 = annotated_vendor_select(
         """
