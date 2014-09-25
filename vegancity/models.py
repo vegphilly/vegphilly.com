@@ -21,65 +21,23 @@ from django.contrib.auth.models import User
 
 from django.db.models.signals import m2m_changed
 
-from django.db.models import Count
 
 from django.template.defaultfilters import slugify
 from django.core.exceptions import ValidationError, ObjectDoesNotExist
 
 import collections
 import logging
-import random
 
 from vegancity import geocode, validators, email
+from vegancity.managers import (TagManager, VendorManager,
+                                VendorSearchManager,
+                                ApprovedVendorManager,
+                                ReviewManager, ApprovedReviewManager,
+                                WithVendorsManager)
 
-from djorm_pgfulltext.models import SearchManagerMixIn
 from djorm_pgfulltext.fields import VectorField
 
 logger = logging.getLogger(__name__)
-
-
-class VendorSearchManagerMixin(SearchManagerMixIn):
-    def vendor_search(self, *args, **kwargs):
-        qs = self.search(*args, **kwargs).values_list('vendor', flat=True)
-        # TODO: not sure why this has to be casted to a list, but
-        # caused an error without it
-        vendors = Vendor.approved_objects.filter(pk__in=list(qs))
-        return vendors
-
-
-class WithVendorsManagerMixin(object):
-    """
-    Adds a method for conveniently filtering down to only
-    objects with approved vendors.
-    """
-    def with_vendors(self, vendors=None):
-        qs = self.filter(vendor__approval_status='approved')
-
-        if not (vendors is None):
-            qs = qs.filter(vendor__in=vendors)
-
-        qs = (qs
-              .distinct()
-              .annotate(vendor_count=Count('vendor'))
-              .filter(vendor_count__gt=0)
-              .order_by('-vendor_count'))
-
-        return qs
-
-
-class VendorSearchManager(VendorSearchManagerMixin, models.Manager):
-    pass
-
-
-class WithVendorsManager(WithVendorsManagerMixin,
-                         models.Manager):
-    pass
-
-
-class TagManager(WithVendorsManagerMixin,
-                 VendorSearchManagerMixin,
-                 models.Manager):
-    pass
 
 
 class _TagModel(models.Model):
@@ -174,29 +132,6 @@ class VeganDish(models.Model):
         verbose_name_plural = "Vegan Dishes"
 
 
-class ReviewManager(VendorSearchManagerMixin, models.Manager):
-
-    "Manager class for handling searches by review."
-
-    def pending_approval(self):
-        """returns all reviews that are not approved, which are
-        otherwise impossible to get in a normal query (for now)."""
-        normal_qs = self.get_query_set()
-        pending = normal_qs.filter(approved=False)
-        return pending
-
-
-class ApprovedReviewManager(ReviewManager):
-
-    "Manager for approved reviews only."
-
-    def get_query_set(self):
-        "Changing initial queryset to ignore approved."
-        normal_qs = super(ApprovedReviewManager, self).get_query_set()
-        new_qs = normal_qs.filter(approved=True)
-        return new_qs
-
-
 class Review(models.Model):
 
     # CORE FIELDS
@@ -253,46 +188,6 @@ class Review(models.Model):
         ordering = ('created',)
         verbose_name = "Review"
         verbose_name_plural = "Reviews"
-
-
-class VendorManager(SearchManagerMixIn, models.GeoManager):
-
-    "Manager class for handling searches by vendor."
-
-    def pending_approval(self):
-        """returns all vendors that are not approved, which are
-        otherwise impossible to get in a normal query."""
-        return self.filter(approval_status='pending')
-
-
-class ApprovedVendorManager(VendorManager):
-
-    """Manager for approved vendors only.
-
-    Inherits the normal vendor manager."""
-
-    def get_query_set(self):
-        normal_qs = super(VendorManager, self).get_query_set()
-        new_qs = normal_qs.filter(approval_status='approved')
-        return new_qs
-
-    def without_reviews(self):
-        review_vendors = (Review
-                          .approved_objects
-                          .values_list('vendor_id', flat=True))
-        return self.all().exclude(pk__in=review_vendors)
-
-    def with_reviews(self):
-        return self.filter(review__approved=True)\
-                   .distinct()\
-                   .annotate(review_count=Count('review'))\
-                   .order_by('-review_count')
-
-    def get_random_unreviewed(self):
-        try:
-            return random.choice(self.without_reviews())
-        except IndexError:
-            return None
 
 
 class Vendor(models.Model):
