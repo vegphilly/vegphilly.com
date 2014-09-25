@@ -28,7 +28,8 @@ from django.core.exceptions import ValidationError, ObjectDoesNotExist
 import collections
 import logging
 
-from vegancity import geocode, validators, email
+from vegancity import geocode, validators
+import email
 from vegancity.managers import (VendorManager, SearchByVendorManager,
                                 ReviewManager)
 
