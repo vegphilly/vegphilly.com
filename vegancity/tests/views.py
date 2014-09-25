@@ -74,9 +74,5 @@ class HomeViewTest(ViewTestCase):
         request.user = self.user
         ctx = views._get_home_context(request)
         self.assertEqual(list(ctx['top_5']), [])
-        self.assertEqual(list(ctx['recently_added']), [{'id': t2.id,
-                                                        'name': t2.name},
-                                                       {'id': t1.id,
-                                                        'name': t1.name}])
-        self.assertEqual(list(ctx['recently_active']), [])
+        self.assertEqual(list(ctx['recently_added']), [t2, t1])
         self.assertEqual(list(ctx['neighborhoods']), [n2])

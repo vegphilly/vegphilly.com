@@ -29,11 +29,8 @@ import collections
 import logging
 
 from vegancity import geocode, validators, email
-from vegancity.managers import (TagManager, VendorManager,
-                                VendorSearchManager,
-                                ApprovedVendorManager,
-                                ReviewManager, ApprovedReviewManager,
-                                WithVendorsManager)
+from vegancity.managers import (VendorManager, SearchByVendorManager,
+                                ReviewManager)
 
 from djorm_pgfulltext.fields import VectorField
 
@@ -84,7 +81,7 @@ class Neighborhood(models.Model):
     name = models.CharField(max_length=255, unique=True)
     created = models.DateTimeField(auto_now_add=True, null=True)
 
-    objects = WithVendorsManager()
+    objects = SearchByVendorManager()
 
     def __unicode__(self):
         return self.name
@@ -117,7 +114,7 @@ class VeganDish(models.Model):
 
     search_index = VectorField()
 
-    objects = VendorSearchManager(
+    objects = SearchByVendorManager(
         fields=('name'),
         auto_update_search_field=True
     )
@@ -145,10 +142,6 @@ class Review(models.Model):
     search_index = VectorField()
 
     objects = ReviewManager(
-        fields=('title', 'content'),
-        auto_update_search_field = True
-    )
-    approved_objects = ApprovedReviewManager(
         fields=('title', 'content'),
         auto_update_search_field = True
     )
@@ -225,10 +218,6 @@ class Vendor(models.Model):
     search_index = VectorField()
 
     objects = VendorManager(
-        fields=('name', 'notes', 'website', 'address'),
-        auto_update_search_field = True
-    )
-    approved_objects = ApprovedVendorManager(
         fields=('name', 'notes', 'website', 'address'),
         auto_update_search_field = True
     )
@@ -361,7 +350,7 @@ class Vendor(models.Model):
     def best_vegan_dish(self):
         "Returns the best vegan dish for the vendor"
         dishes = collections.Counter()
-        vendor_reviews = Review.approved_objects\
+        vendor_reviews = Review.objects.approved()\
                                .filter(vendor=self,
                                        best_vegan_dish__isnull=False)
 
@@ -375,7 +364,7 @@ class Vendor(models.Model):
             return None
 
     def food_rating(self):
-        reviews = Review.approved_objects.filter(vendor=self)
+        reviews = Review.objects.approved().filter(vendor=self)
         food_ratings = [review.food_rating for review in reviews
                         if review.food_rating]
         if food_ratings:
@@ -385,7 +374,7 @@ class Vendor(models.Model):
 
     def atmosphere_rating(self):
         "calculates the average rating for a vendor"
-        reviews = Review.approved_objects.filter(vendor=self)
+        reviews = Review.objects.approved().filter(vendor=self)
         atmosphere_ratings = [review.atmosphere_rating for review in reviews
                               if review.atmosphere_rating]
         if atmosphere_ratings:
@@ -400,8 +389,11 @@ class Vendor(models.Model):
         return self.name
 
     def approved_reviews(self):
-        return Review.approved_objects.filter(vendor=self.id)\
-                                      .order_by('-created')
+        return (Review
+                .objects
+                .approved()
+                .filter(vendor=self.id)
+                .order_by('-created'))
 
     class Meta:
         get_latest_by = "created"
@@ -456,7 +448,7 @@ m2m_changed.connect(validate_vegan_dish, sender=Vendor.vegan_dishes.through)
 class CuisineTag(_TagModel):
     search_index = VectorField()
 
-    objects = TagManager(
+    objects = SearchByVendorManager(
         fields=('name', 'description'),
         auto_update_search_field=True
     )
@@ -469,7 +461,7 @@ class CuisineTag(_TagModel):
 class FeatureTag(_TagModel):
     search_index = VectorField()
 
-    objects = TagManager(
+    objects = SearchByVendorManager(
         fields=('name', 'description'),
         auto_update_search_field=True
     )

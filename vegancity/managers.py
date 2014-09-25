@@ -21,24 +21,23 @@ import random
 from django.contrib.gis.db import models
 from django.db.models import Count
 
-from djorm_pgfulltext.models import SearchManagerMixIn
+from djorm_pgfulltext.models import SearchManagerMixIn, SearchQuerySet
+from django.contrib.gis.db.models.query import GeoQuerySet
+
+##########################################################>
+# Managers for models that relate to vendor
+##########################################################>
 
 
-class VendorSearchManagerMixin(SearchManagerMixIn):
+class SearchByVendorQuerySet(SearchQuerySet, GeoQuerySet):
     def vendor_search(self, *args, **kwargs):
         from models import Vendor
         qs = self.search(*args, **kwargs).values_list('vendor', flat=True)
         # TODO: not sure why this has to be casted to a list, but
         # caused an error without it
-        vendors = Vendor.approved_objects.filter(pk__in=list(qs))
+        vendors = Vendor.objects.approved().filter(pk__in=list(qs))
         return vendors
 
-
-class WithVendorsManagerMixin(object):
-    """
-    Adds a method for conveniently filtering down to only
-    objects with approved vendors.
-    """
     def with_vendors(self, vendors=None):
         qs = self.filter(vendor__approval_status='approved')
 
@@ -54,69 +53,45 @@ class WithVendorsManagerMixin(object):
         return qs
 
 
-class VendorSearchManager(VendorSearchManagerMixin, models.GeoManager):
-    pass
+class SearchByVendorManager(SearchManagerMixIn, models.Manager):
+    def get_queryset(self):
+        return SearchByVendorQuerySet(model=self.model, using=self._db)
+
+    # TODO: use a better pass-thru mechanism to avoid
+    # repeating these qs methods on the manager
+
+    def vendor_search(self, *args, **kwargs):
+        return self.get_queryset().vendor_search(*args, **kwargs)
+
+    def with_vendors(self, *args, **kwargs):
+        return self.get_queryset().with_vendors(*args, **kwargs)
 
 
-class WithVendorsManager(WithVendorsManagerMixin,
-                         models.Manager):
-    pass
-
-
-class TagManager(WithVendorsManagerMixin,
-                 VendorSearchManagerMixin,
-                 models.Manager):
-    pass
-
-
-class ReviewManager(VendorSearchManagerMixin, models.Manager):
-
-    "Manager class for handling searches by review."
+class ReviewManager(SearchByVendorManager):
+    def approved(self):
+        return self.get_queryset().filter(approved=True)
 
     def pending_approval(self):
         """returns all reviews that are not approved, which are
         otherwise impossible to get in a normal query (for now)."""
-        normal_qs = self.get_query_set()
+        normal_qs = self.get_queryset()
         pending = normal_qs.filter(approved=False)
         return pending
 
 
-class ApprovedReviewManager(ReviewManager):
-
-    "Manager for approved reviews only."
-
-    def get_query_set(self):
-        "Changing initial queryset to ignore approved."
-        normal_qs = super(ApprovedReviewManager, self).get_query_set()
-        new_qs = normal_qs.filter(approved=True)
-        return new_qs
-
-
-class VendorManager(SearchManagerMixIn, models.GeoManager):
-
-    "Manager class for handling searches by vendor."
-
+class VendorQuerySet(GeoQuerySet, SearchQuerySet):
     def pending_approval(self):
         """returns all vendors that are not approved, which are
         otherwise impossible to get in a normal query."""
         return self.filter(approval_status='pending')
 
-
-class ApprovedVendorManager(VendorManager):
-
-    """Manager for approved vendors only.
-
-    Inherits the normal vendor manager."""
-
-    def get_query_set(self):
-        normal_qs = super(VendorManager, self).get_query_set()
-        new_qs = normal_qs.filter(approval_status='approved')
-        return new_qs
+    def approved(self):
+        return self.filter(approval_status='approved')
 
     def without_reviews(self):
         from models import Review
         review_vendors = (Review
-                          .approved_objects
+                          .objects.approved()
                           .values_list('vendor_id', flat=True))
         return self.all().exclude(pk__in=review_vendors)
 
@@ -131,3 +106,19 @@ class ApprovedVendorManager(VendorManager):
             return random.choice(self.without_reviews())
         except IndexError:
             return None
+
+
+class VendorManager(SearchManagerMixIn, models.GeoManager):
+    def get_queryset(self):
+        return VendorQuerySet(model=self.model, using=self._db)
+
+    # TODO: use a better pass-thru mechanism to avoid
+    # repeating these qs methods on the manager
+    def search(self, *args, **kwargs):
+        return self.get_queryset().search(*args, **kwargs)
+
+    def approved(self):
+        return self.get_queryset().approved()
+
+    def pending_approval(self):
+        return self.get_queryset().pending_approval()

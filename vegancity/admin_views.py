@@ -61,7 +61,7 @@ def mailing_list(request):
 
 @staff_member_required
 def vendor_list(request):
-    vendors = models.Vendor.approved_objects\
+    vendors = models.Vendor.objects.approved()\
                            .values('name',
                                    'address',
                                    'neighborhood__name',

@@ -51,10 +51,10 @@ def password_change(request):
 
 
 def _get_home_context(request):
-    vendors = Vendor.approved_objects.all()
+    vendors = Vendor.objects.approved().all()
 
     random_unreviewed = (Vendor
-                         .approved_objects
+                         .objects.approved()
                          .get_random_unreviewed()
                          if request.user.is_authenticated()
                          else None)
@@ -92,7 +92,7 @@ def _get_home_context(request):
     recently_added = (vendors.exclude(created=None)
                       .order_by('-created')[:5])
 
-    most_reviewed = Vendor.approved_objects.with_reviews()[:5]
+    most_reviewed = Vendor.objects.approved().with_reviews()[:5]
 
     neighborhoods = Neighborhood.objects.with_vendors()[:21]
 
@@ -128,7 +128,7 @@ def user_profile(request, username):
             return redirect('user_profile', username=request.user.username)
     else:
         profile_user = get_object_or_404(User, username=username)
-        approved_reviews = (Review.approved_objects
+        approved_reviews = (Review.objects.approved()
                             .filter(author=profile_user)
                             .order_by('-created'))
         return render_to_response(
@@ -151,7 +151,7 @@ def vendors(request):
                                if request.GET.get(f.name) or
                                selected_feature_tag_id == str(f.id)]
 
-    vendors = Vendor.approved_objects.select_related('veg_level').all()
+    vendors = Vendor.objects.approved().select_related('veg_level').all()
 
     if selected_neighborhood_id:
         vendors = vendors.filter(neighborhood__id=selected_neighborhood_id)
@@ -303,7 +303,7 @@ def new_review(request, vendor_id):
     "Create a new vendor-specific review."
 
     # get vendor, place in ctx dict for the template
-    vendor = Vendor.approved_objects.get(id=vendor_id)
+    vendor = Vendor.objects.approved().get(id=vendor_id)
     ctx = {'vendor': vendor}
 
     # Apply the vendor as an argument to the form constructor.
@@ -359,7 +359,7 @@ def account_edit(request):
 
 
 def vendor_detail(request, pk):
-    vendor = get_object_or_404(Vendor.approved_objects, pk=pk)
+    vendor = get_object_or_404(Vendor.objects.approved(), pk=pk)
     approved_reviews = vendor.approved_reviews()
     return render_to_response('vegancity/vendor_detail.html',
                               {'vendor': vendor,

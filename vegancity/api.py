@@ -79,7 +79,7 @@ class VendorResource(ModelResource):
         return bundle.obj.atmosphere_rating()
 
     class Meta:
-        queryset = models.Vendor.approved_objects.all()
+        queryset = models.Vendor.objects.approved().all()
         resource_name = 'vendors'
         fields = ['id', 'name', 'address', 'website', 'phone',
                   'notes', 'resource_uri']
@@ -97,7 +97,7 @@ class ReviewResource(ModelResource):
                                         full=True)
 
     class Meta:
-        queryset = models.Review.approved_objects.all()
+        queryset = models.Review.objects.approved().all()
         resource_name = 'reviews'
         fields = [
             'id', 'atmosphere_rating', 'food_rating', 'title', 'content',

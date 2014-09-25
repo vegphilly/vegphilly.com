@@ -91,8 +91,8 @@ class PageLoadTest(IntegrationTest):
     fixtures = ['public_data.json']
 
     def setUp(self):
-        self.reviews = Review.approved_objects.all()
-        self.vendors = Vendor.approved_objects.all()
+        self.reviews = Review.objects.approved().all()
+        self.vendors = Vendor.objects.approved().all()
 
     def assertNoBrokenTemplates(self, url):
         response = self.client.post(url)
