@@ -385,7 +385,7 @@ class PrivacyView(TemplateView):
 
 class ReviewThanksView(DetailView):
     template_name = 'vegancity/review_thanks.html'
-    queryset = Vendor.approved_objects.all()
+    model = Vendor
 
     def get_context_data(self, **kwargs):
         context = super(ReviewThanksView, self).get_context_data(**kwargs)
