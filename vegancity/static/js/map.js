@@ -45,12 +45,12 @@ var vendorMap = {
         }
 
         this.map = new google.maps.Map($(map_container_id).get(0),
-                                       { 
+                                       {
                                            zoom: 14,
                                            maxZoom: 18,
                                            minZoom: 9,
                                            center: center,
-                                           mapTypeId: google.maps.MapTypeId.ROADMAP 
+                                           mapTypeId: google.maps.MapTypeId.ROADMAP
                                        });
 
 
@@ -69,7 +69,7 @@ var vendorMap = {
 
         vendorMap.plotAllPoints();
     },
-    
+
     plotAllPoints: function() {
         _.each(this.vendors, function(vendor) {
             this.markers[vendor.id] = this.place(vendor);
@@ -117,6 +117,6 @@ var vendorMap = {
                 vendorMap.captionBubble.open(vendorMap.map, this);
     	    });
         };
-        return marker;   
+        return marker;
     }
 };
