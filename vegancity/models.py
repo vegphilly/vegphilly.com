@@ -21,65 +21,21 @@ from django.contrib.auth.models import User
 
 from django.db.models.signals import m2m_changed
 
-from django.db.models import Count
 
 from django.template.defaultfilters import slugify
 from django.core.exceptions import ValidationError, ObjectDoesNotExist
 
 import collections
 import logging
-import random
 
-from vegancity import geocode, validators, email
+from vegancity import geocode, validators
+import email
+from vegancity.managers import (VendorManager, SearchByVendorManager,
+                                ReviewManager)
 
-from djorm_pgfulltext.models import SearchManagerMixIn
 from djorm_pgfulltext.fields import VectorField
 
 logger = logging.getLogger(__name__)
-
-
-class VendorSearchManagerMixin(SearchManagerMixIn):
-    def vendor_search(self, *args, **kwargs):
-        qs = self.search(*args, **kwargs).values_list('vendor', flat=True)
-        # TODO: not sure why this has to be casted to a list, but
-        # caused an error without it
-        vendors = Vendor.approved_objects.filter(pk__in=list(qs))
-        return vendors
-
-
-class WithVendorsManagerMixin(object):
-    """
-    Adds a method for conveniently filtering down to only
-    objects with approved vendors.
-    """
-    def with_vendors(self, vendors=None):
-        qs = self.filter(vendor__approval_status='approved')
-
-        if not (vendors is None):
-            qs = qs.filter(vendor__in=vendors)
-
-        qs = (qs
-              .distinct()
-              .annotate(vendor_count=Count('vendor'))
-              .filter(vendor_count__gt=0)
-              .order_by('-vendor_count'))
-
-        return qs
-
-
-class VendorSearchManager(VendorSearchManagerMixin, models.Manager):
-    pass
-
-
-class WithVendorsManager(WithVendorsManagerMixin,
-                         models.Manager):
-    pass
-
-
-class TagManager(WithVendorsManagerMixin,
-                 VendorSearchManagerMixin,
-                 models.Manager):
-    pass
 
 
 class _TagModel(models.Model):
@@ -126,7 +82,7 @@ class Neighborhood(models.Model):
     name = models.CharField(max_length=255, unique=True)
     created = models.DateTimeField(auto_now_add=True, null=True)
 
-    objects = WithVendorsManager()
+    objects = SearchByVendorManager()
 
     def __unicode__(self):
         return self.name
@@ -159,7 +115,7 @@ class VeganDish(models.Model):
 
     search_index = VectorField()
 
-    objects = VendorSearchManager(
+    objects = SearchByVendorManager(
         fields=('name'),
         auto_update_search_field=True
     )
@@ -172,29 +128,6 @@ class VeganDish(models.Model):
         ordering = ('name',)
         verbose_name = "Vegan Dish"
         verbose_name_plural = "Vegan Dishes"
-
-
-class ReviewManager(VendorSearchManagerMixin, models.Manager):
-
-    "Manager class for handling searches by review."
-
-    def pending_approval(self):
-        """returns all reviews that are not approved, which are
-        otherwise impossible to get in a normal query (for now)."""
-        normal_qs = self.get_query_set()
-        pending = normal_qs.filter(approved=False)
-        return pending
-
-
-class ApprovedReviewManager(ReviewManager):
-
-    "Manager for approved reviews only."
-
-    def get_query_set(self):
-        "Changing initial queryset to ignore approved."
-        normal_qs = super(ApprovedReviewManager, self).get_query_set()
-        new_qs = normal_qs.filter(approved=True)
-        return new_qs
 
 
 class Review(models.Model):
@@ -210,10 +143,6 @@ class Review(models.Model):
     search_index = VectorField()
 
     objects = ReviewManager(
-        fields=('title', 'content'),
-        auto_update_search_field = True
-    )
-    approved_objects = ApprovedReviewManager(
         fields=('title', 'content'),
         auto_update_search_field = True
     )
@@ -255,46 +184,6 @@ class Review(models.Model):
         verbose_name_plural = "Reviews"
 
 
-class VendorManager(SearchManagerMixIn, models.GeoManager):
-
-    "Manager class for handling searches by vendor."
-
-    def pending_approval(self):
-        """returns all vendors that are not approved, which are
-        otherwise impossible to get in a normal query."""
-        return self.filter(approval_status='pending')
-
-
-class ApprovedVendorManager(VendorManager):
-
-    """Manager for approved vendors only.
-
-    Inherits the normal vendor manager."""
-
-    def get_query_set(self):
-        normal_qs = super(VendorManager, self).get_query_set()
-        new_qs = normal_qs.filter(approval_status='approved')
-        return new_qs
-
-    def without_reviews(self):
-        review_vendors = (Review
-                          .approved_objects
-                          .values_list('vendor_id', flat=True))
-        return self.all().exclude(pk__in=review_vendors)
-
-    def with_reviews(self):
-        return self.filter(review__approved=True)\
-                   .distinct()\
-                   .annotate(review_count=Count('review'))\
-                   .order_by('-review_count')
-
-    def get_random_unreviewed(self):
-        try:
-            return random.choice(self.without_reviews())
-        except IndexError:
-            return None
-
-
 class Vendor(models.Model):
 
     "The main class for this application"
@@ -330,10 +219,6 @@ class Vendor(models.Model):
     search_index = VectorField()
 
     objects = VendorManager(
-        fields=('name', 'notes', 'website', 'address'),
-        auto_update_search_field = True
-    )
-    approved_objects = ApprovedVendorManager(
         fields=('name', 'notes', 'website', 'address'),
         auto_update_search_field = True
     )
@@ -466,7 +351,7 @@ class Vendor(models.Model):
     def best_vegan_dish(self):
         "Returns the best vegan dish for the vendor"
         dishes = collections.Counter()
-        vendor_reviews = Review.approved_objects\
+        vendor_reviews = Review.objects.approved()\
                                .filter(vendor=self,
                                        best_vegan_dish__isnull=False)
 
@@ -480,7 +365,7 @@ class Vendor(models.Model):
             return None
 
     def food_rating(self):
-        reviews = Review.approved_objects.filter(vendor=self)
+        reviews = Review.objects.approved().filter(vendor=self)
         food_ratings = [review.food_rating for review in reviews
                         if review.food_rating]
         if food_ratings:
@@ -490,7 +375,7 @@ class Vendor(models.Model):
 
     def atmosphere_rating(self):
         "calculates the average rating for a vendor"
-        reviews = Review.approved_objects.filter(vendor=self)
+        reviews = Review.objects.approved().filter(vendor=self)
         atmosphere_ratings = [review.atmosphere_rating for review in reviews
                               if review.atmosphere_rating]
         if atmosphere_ratings:
@@ -505,8 +390,11 @@ class Vendor(models.Model):
         return self.name
 
     def approved_reviews(self):
-        return Review.approved_objects.filter(vendor=self.id)\
-                                      .order_by('-created')
+        return (Review
+                .objects
+                .approved()
+                .filter(vendor=self.id)
+                .order_by('-created'))
 
     class Meta:
         get_latest_by = "created"
@@ -561,7 +449,7 @@ m2m_changed.connect(validate_vegan_dish, sender=Vendor.vegan_dishes.through)
 class CuisineTag(_TagModel):
     search_index = VectorField()
 
-    objects = TagManager(
+    objects = SearchByVendorManager(
         fields=('name', 'description'),
         auto_update_search_field=True
     )
@@ -574,7 +462,7 @@ class CuisineTag(_TagModel):
 class FeatureTag(_TagModel):
     search_index = VectorField()
 
-    objects = TagManager(
+    objects = SearchByVendorManager(
         fields=('name', 'description'),
         auto_update_search_field=True
     )

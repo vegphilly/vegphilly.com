@@ -27,11 +27,11 @@ from django.contrib.gis.geos import Point
 def master_search(query, initial_queryset=None):
 
     master_results = (address_search(query) |
-                      Vendor.approved_objects.search(query) |
+                      Vendor.objects.approved().search(query) |
                       FeatureTag.objects.vendor_search(query) |
                       CuisineTag.objects.vendor_search(query) |
                       VeganDish.objects.vendor_search(query) |
-                      Review.approved_objects.vendor_search(query))
+                      Review.objects.approved().vendor_search(query))
 
     if initial_queryset:
         master_results = master_results & initial_queryset
@@ -48,7 +48,7 @@ def address_search(query):
         latitude, longitude, neighborhood = geocode_result
 
         point = Point(x=longitude, y=latitude, srid=4326)
-        vendors = Vendor.approved_objects.filter(
+        vendors = Vendor.objects.approved().filter(
             location__dwithin=(point, .004))
 
         return vendors

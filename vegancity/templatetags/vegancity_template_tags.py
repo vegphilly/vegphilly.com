@@ -40,6 +40,7 @@ def graphical_rating(rating):
                      'images/rating-faded.png">') * (4 - rating)
     return rating_icons
 
+
 def spaces_to_nbsps(obj):
     safe_string = escape(unicode(obj))
     return mark_safe(safe_string.replace(" ", "&nbsp;"))

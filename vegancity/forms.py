@@ -22,6 +22,7 @@ import models
 
 from django.contrib.auth.forms import UserCreationForm
 
+
 class VegUserCreationForm(UserCreationForm):
 
     "Form used for creating new users."

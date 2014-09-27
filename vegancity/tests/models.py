@@ -217,9 +217,9 @@ class VendorApprovedManagerTest(TestCase):
 
     def assertVendorCounts(self, without_count, with_count):
         self.assertEqual(without_count,
-                         Vendor.approved_objects.without_reviews().count())
+                         Vendor.objects.approved().without_reviews().count())
         self.assertEqual(with_count,
-                         Vendor.approved_objects.with_reviews().count())
+                         Vendor.objects.approved().with_reviews().count())
 
     def test_with_without_reviews_no_vendors(self):
         self.assertVendorCounts(0, 0)
@@ -250,26 +250,28 @@ class VendorApprovedManagerTest(TestCase):
         self.assertVendorCounts(0, 2)
 
     def test_get_random_unreviewed_no_vendors(self):
-        self.assertEqual(None, Vendor.approved_objects.get_random_unreviewed())
+        self.assertEqual(None,
+                         Vendor.objects.approved().get_random_unreviewed())
 
     def test_get_random_unreviewed_no_unreviewed_vendors(self):
         v1 = Vendor.objects.create(name='tv1', approval_status='approved')
         Review.objects.create(vendor=v1, approved=True, author=get_user())
-        self.assertEqual(None, Vendor.approved_objects.get_random_unreviewed())
+        self.assertEqual(None,
+                         Vendor.objects.approved().get_random_unreviewed())
 
     def test_get_random_unreviewed_with_only_unapproved_reviews(self):
         v1 = Vendor.objects.create(name='tv1', approval_status='approved')
         Review.objects.create(vendor=v1, approved=False, author=get_user())
-        self.assertEqual(v1, Vendor.approved_objects.get_random_unreviewed())
+        self.assertEqual(v1, Vendor.objects.approved().get_random_unreviewed())
 
     def test_get_random_unreviewed_one_vendor(self):
         v1 = Vendor.objects.create(name='tv1', approval_status='approved')
-        self.assertEqual(v1, Vendor.approved_objects.get_random_unreviewed())
+        self.assertEqual(v1, Vendor.objects.approved().get_random_unreviewed())
 
     def test_get_random_unreviewed_multiple_unreviewed_vendor(self):
         v1 = Vendor.objects.create(name='tv1', approval_status='approved')
         v2 = Vendor.objects.create(name='tv2', approval_status='approved')
-        self.assertIn(Vendor.approved_objects.get_random_unreviewed(),
+        self.assertIn(Vendor.objects.approved().get_random_unreviewed(),
                       [v1, v2])
 
     def test_get_random_unreviewed_mixed_unreviewed_vendors_and_reviewed(self):
@@ -277,7 +279,7 @@ class VendorApprovedManagerTest(TestCase):
         v2 = Vendor.objects.create(name='tv2', approval_status='approved')
         v3 = Vendor.objects.create(name='tv3', approval_status='approved')
         Review.objects.create(vendor=v1, approved=True, author=get_user())
-        self.assertIn(Vendor.approved_objects.get_random_unreviewed(),
+        self.assertIn(Vendor.objects.approved().get_random_unreviewed(),
                       [v2, v3])
 
 
