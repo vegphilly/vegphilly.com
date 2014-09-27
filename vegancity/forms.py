@@ -100,17 +100,6 @@ class VegProfileEditForm(forms.ModelForm):
 ### Vendor Forms
 ##############################
 
-class AdminVendorForm(forms.ModelForm):
-
-    class Meta:
-        model = models.Vendor
-
-    def __init__(self, *args, **kwargs):
-        super(AdminVendorForm, self).__init__(*args, **kwargs)
-        if not self.instance.created:
-            self.fields['approval_status'].initial = 'pending'
-
-
 class NewVendorForm(forms.ModelForm):
     "Form used for adding new vendors."
 
