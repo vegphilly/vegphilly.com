@@ -78,6 +78,9 @@ var vendorMap = {
 
     getBounds: function () {
         var bounds = new google.maps.LatLngBounds();
+        if (this.vendors.length === 0) {
+            bounds.extend(this.map.getCenter());
+        }
         _.each(this.vendors, function(vendor) {
             var LatLng = new google.maps.LatLng(vendor.latitude, vendor.longitude);
             bounds.extend(LatLng);
