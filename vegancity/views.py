@@ -170,8 +170,8 @@ def vendors(request):
 
     ctx = {
         'cuisine_tags': CuisineTag.objects.all(),
-        'feature_tags': FeatureTag.objects.all(),
-        'neighborhoods': Neighborhood.objects.with_vendors(),
+        'feature_tags': FeatureTag.objects.all().order_by('description'),
+        'neighborhoods': Neighborhood.objects.with_vendors().order_by('name'),
         'vendor_count': len(vendors),
         'vendors': vendors,
         'request_user': request.user or None,
