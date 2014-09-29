@@ -141,6 +141,7 @@ class Review(models.Model):
     created = models.DateTimeField(auto_now_add=True)
     modified = models.DateTimeField(auto_now=True)
     approved = models.BooleanField(default=False, db_index=True)
+    approval_status = StatusField(db_index=True)
     search_index = VectorField()
 
     objects = ReviewManager(
