@@ -32,6 +32,7 @@ from vegancity import geocode, validators
 import email
 from vegancity.managers import (VendorManager, SearchByVendorManager,
                                 ReviewManager)
+from vegancity.fields import StatusField
 
 from djorm_pgfulltext.fields import VectorField
 
@@ -204,17 +205,7 @@ class Vendor(models.Model):
     created = models.DateTimeField(auto_now_add=True, null=True)
     submitted_by = models.ForeignKey(User, null=True, blank=True)
     modified = models.DateTimeField(auto_now=True, null=True)
-    approval_status = models.CharField(max_length=100,
-                                       db_index=True,
-                                       default='pending',
-                                       choices=(('pending',
-                                                 'Pending Approval'),
-
-                                                ('approved',
-                                                 'Approved'),
-
-                                                ('quarantined',
-                                                 'Quarantined')))
+    approval_status = StatusField(db_index=True)
 
     search_index = VectorField()
 
