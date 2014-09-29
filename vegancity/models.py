@@ -32,6 +32,7 @@ from vegancity import geocode, validators
 import email
 from vegancity.managers import (VendorManager, SearchByVendorManager,
                                 ReviewManager)
+from vegancity.fields import StatusField as SF
 from vegancity.fields import StatusField
 
 from djorm_pgfulltext.fields import VectorField
@@ -140,7 +141,6 @@ class Review(models.Model):
     # ADMINISTRATIVE FIELDS
     created = models.DateTimeField(auto_now_add=True)
     modified = models.DateTimeField(auto_now=True)
-    approved = models.BooleanField(default=False, db_index=True)
     approval_status = StatusField(db_index=True)
     search_index = VectorField()
 
@@ -314,11 +314,11 @@ class Vendor(models.Model):
 
         super(Vendor, self).save(*args, **kwargs)
 
-        # if the approval_status just changed to "approved" from
-        # "pending", email the user who submitted the vendor to
+        # if the approval_status just changed to SF.APPROVED from
+        # SF.PENDING, email the user who submitted the vendor to
         # let them know their submission has succeeded.
-        should_send_email = (previous_state.approval_status == 'pending'
-                             and self.approval_status == 'approved'
+        should_send_email = (previous_state.approval_status == SF.PENDING
+                             and self.approval_status == SF.APPROVED
                              and self.submitted_by
                              and self.submitted_by.email)
 
@@ -327,18 +327,18 @@ class Vendor(models.Model):
 
     def validate_pending(self, orig_vendor):
         """
-        If the approval_status has just been changed to "pending"
+        If the approval_status has just been changed to "StatusField.PENDING"
         from any other value, raise an exception. Once a vendor
-        has been something other than pending, it cannot return
+        has been something other than StatusField.PENDING, it cannot return
         to that state. This is required so that a user only gets
         an approval email ONCE.
         """
-        previously_not_pending = (orig_vendor.approval_status != 'pending')
-        currently_pending = (self.approval_status == 'pending')
+        previously_not_pending = (orig_vendor.approval_status != SF.PENDING)
+        currently_pending = (self.approval_status == SF.PENDING)
 
         if previously_not_pending and currently_pending:
             # TODO: make this fail gracefully instead of causing a crashpage
-            raise ValidationError("Cannot change a vendor back to pending!")
+            raise ValidationError("Cannot change a vendor back to PENDING!")
 
     def best_vegan_dish(self):
         "Returns the best vegan dish for the vendor"

@@ -33,11 +33,11 @@ import forms
 
 
 class ReviewAdmin(admin.ModelAdmin):
-    list_display = ('vendor', 'author', 'approved',
+    list_display = ('vendor', 'author', 'approval_status',
                     'suggested_feature_tags', 'suggested_cuisine_tags',
 
                     )
-    list_filter = ('approved', 'unlisted_vegan_dish')
+    list_filter = ('approval_status', 'unlisted_vegan_dish')
     form = forms.AdminEditReviewForm
 
 
@@ -45,8 +45,8 @@ class VendorVeganDishInline(admin.TabularInline):
     model = models.Vendor.vegan_dishes.through
     extra = 0
 
-class AdminVendorForm(dj_forms.ModelForm):
 
+class AdminVendorForm(dj_forms.ModelForm):
     class Meta:
         model = models.Vendor
 

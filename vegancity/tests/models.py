@@ -8,6 +8,7 @@ from django.test import TestCase
 from vegancity import email, geocode
 from vegancity.models import Review, Vendor, Neighborhood, VeganDish
 from vegancity.tests.utils import get_user
+from vegancity.fields import StatusField as SF
 
 
 class VendorVeganDishValidationTest(TestCase):
@@ -85,10 +86,10 @@ class WithVendorsManagerTest(TestCase):
 
         self.v1 = Vendor.objects.create(name="Test Vendor",
                                         neighborhood=self.n1,
-                                        approval_status='approved')
+                                        approval_status=SF.APPROVED)
         self.v2 = Vendor.objects.create(name="Test Vendor 2",
                                         neighborhood=self.n2,
-                                        approval_status='approved')
+                                        approval_status=SF.APPROVED)
 
     def assertCounts(self, vendors, with_vendors_count, without_vendors_count):
         self.assertEqual(with_vendors_count,
@@ -199,16 +200,16 @@ class VendorManagerTest(TestCase):
 
     def test_pending_approval_some_approved(self):
         Vendor.objects.create(name="Test Vendor 1",
-                              approval_status='approved')
+                              approval_status=SF.APPROVED)
         Vendor.objects.create(name="Test Vendor 2")
         self.assertEqual(1,
                          Vendor.objects.pending_approval().count())
 
     def test_pending_approval_all_approved(self):
         Vendor.objects.create(name="Test Vendor 1",
-                              approval_status='approved')
+                              approval_status=SF.APPROVED)
         Vendor.objects.create(name="Test Vendor 2",
-                              approval_status='approved')
+                              approval_status=SF.APPROVED)
         self.assertEqual(0,
                          Vendor.objects.pending_approval().count())
 
@@ -225,28 +226,32 @@ class VendorApprovedManagerTest(TestCase):
         self.assertVendorCounts(0, 0)
 
     def test_with_without_reviews_no_reviews(self):
-        Vendor.objects.create(name='tv1', approval_status='approved')
-        Vendor.objects.create(name='tv2', approval_status='approved')
+        Vendor.objects.create(name='tv1', approval_status=SF.APPROVED)
+        Vendor.objects.create(name='tv2', approval_status=SF.APPROVED)
         self.assertVendorCounts(2, 0)
 
     def test_with_without_reviews_no_approved_reviews(self):
-        v1 = Vendor.objects.create(name='tv1', approval_status='approved')
-        Vendor.objects.create(name='tv2', approval_status='approved')
+        v1 = Vendor.objects.create(name='tv1', approval_status=SF.APPROVED)
+        Vendor.objects.create(name='tv2', approval_status=SF.APPROVED)
         Review.objects.create(vendor=v1, author=get_user())
         self.assertVendorCounts(2, 0)
 
     def test_with_without_review_with_some_approved_reviews(self):
-        v1 = Vendor.objects.create(name='tv1', approval_status='approved')
-        v2 = Vendor.objects.create(name='tv2', approval_status='approved')
-        Review.objects.create(vendor=v1, approved=True, author=get_user())
-        Review.objects.create(vendor=v2, approved=False, author=get_user())
+        v1 = Vendor.objects.create(name='tv1', approval_status=SF.APPROVED)
+        v2 = Vendor.objects.create(name='tv2', approval_status=SF.APPROVED)
+        Review.objects.create(vendor=v1, approval_status=SF.APPROVED,
+                              author=get_user())
+        Review.objects.create(vendor=v2, approval_status=SF.PENDING,
+                              author=get_user())
         self.assertVendorCounts(1, 1)
 
     def test_with_without_review_with_all_approved_reviews(self):
-        v1 = Vendor.objects.create(name='tv1', approval_status='approved')
-        v2 = Vendor.objects.create(name='tv2', approval_status='approved')
-        Review.objects.create(vendor=v1, approved=True, author=get_user())
-        Review.objects.create(vendor=v2, approved=True, author=get_user())
+        v1 = Vendor.objects.create(name='tv1', approval_status=SF.APPROVED)
+        v2 = Vendor.objects.create(name='tv2', approval_status=SF.APPROVED)
+        Review.objects.create(vendor=v1, approval_status=SF.APPROVED,
+                              author=get_user())
+        Review.objects.create(vendor=v2, approval_status=SF.APPROVED,
+                              author=get_user())
         self.assertVendorCounts(0, 2)
 
     def test_get_random_unreviewed_no_vendors(self):
@@ -254,31 +259,34 @@ class VendorApprovedManagerTest(TestCase):
                          Vendor.objects.approved().get_random_unreviewed())
 
     def test_get_random_unreviewed_no_unreviewed_vendors(self):
-        v1 = Vendor.objects.create(name='tv1', approval_status='approved')
-        Review.objects.create(vendor=v1, approved=True, author=get_user())
+        v1 = Vendor.objects.create(name='tv1', approval_status=SF.APPROVED)
+        Review.objects.create(vendor=v1,  approval_status=SF.APPROVED,
+                              author=get_user())
         self.assertEqual(None,
                          Vendor.objects.approved().get_random_unreviewed())
 
     def test_get_random_unreviewed_with_only_unapproved_reviews(self):
-        v1 = Vendor.objects.create(name='tv1', approval_status='approved')
-        Review.objects.create(vendor=v1, approved=False, author=get_user())
+        v1 = Vendor.objects.create(name='tv1', approval_status=SF.APPROVED)
+        Review.objects.create(vendor=v1, approval_status=SF.PENDING,
+                              author=get_user())
         self.assertEqual(v1, Vendor.objects.approved().get_random_unreviewed())
 
     def test_get_random_unreviewed_one_vendor(self):
-        v1 = Vendor.objects.create(name='tv1', approval_status='approved')
+        v1 = Vendor.objects.create(name='tv1', approval_status=SF.APPROVED)
         self.assertEqual(v1, Vendor.objects.approved().get_random_unreviewed())
 
     def test_get_random_unreviewed_multiple_unreviewed_vendor(self):
-        v1 = Vendor.objects.create(name='tv1', approval_status='approved')
-        v2 = Vendor.objects.create(name='tv2', approval_status='approved')
+        v1 = Vendor.objects.create(name='tv1', approval_status=SF.APPROVED)
+        v2 = Vendor.objects.create(name='tv2', approval_status=SF.APPROVED)
         self.assertIn(Vendor.objects.approved().get_random_unreviewed(),
                       [v1, v2])
 
     def test_get_random_unreviewed_mixed_unreviewed_vendors_and_reviewed(self):
-        v1 = Vendor.objects.create(name='tv1', approval_status='approved')
-        v2 = Vendor.objects.create(name='tv2', approval_status='approved')
-        v3 = Vendor.objects.create(name='tv3', approval_status='approved')
-        Review.objects.create(vendor=v1, approved=True, author=get_user())
+        v1 = Vendor.objects.create(name='tv1', approval_status=SF.APPROVED)
+        v2 = Vendor.objects.create(name='tv2', approval_status=SF.APPROVED)
+        v3 = Vendor.objects.create(name='tv3', approval_status=SF.APPROVED)
+        Review.objects.create(vendor=v1, approval_status=SF.APPROVED,
+                              author=get_user())
         self.assertIn(Vendor.objects.approved().get_random_unreviewed(),
                       [v2, v3])
 
@@ -296,7 +304,7 @@ class VendorModelTest(TestCase):
         self.assertEqual(vendor.atmosphere_rating(), None)
 
         Review(vendor=vendor,
-               approved=True,
+               approval_status=SF.APPROVED,
                food_rating=1,
                atmosphere_rating=1,
                author=self.user).save()
@@ -305,7 +313,7 @@ class VendorModelTest(TestCase):
         self.assertEqual(vendor.atmosphere_rating(), 1)
 
         review2 = Review(vendor=vendor,
-                         approved=False,
+                         approval_status=SF.PENDING,
                          food_rating=4,
                          atmosphere_rating=4,
                          author=self.user)
@@ -314,7 +322,7 @@ class VendorModelTest(TestCase):
         self.assertEqual(vendor.food_rating(), 1)
         self.assertEqual(vendor.atmosphere_rating(), 1)
 
-        review2.approved = True
+        review2.approval_status = SF.APPROVED
         review2.save()
 
         # Floored Average
@@ -322,7 +330,7 @@ class VendorModelTest(TestCase):
         self.assertEqual(vendor.atmosphere_rating(), 2)
 
         review3 = Review(vendor=vendor,
-                         approved=True,
+                         approval_status=SF.APPROVED,
                          food_rating=4,
                          atmosphere_rating=4,
                          author=self.user)
@@ -335,61 +343,61 @@ class VendorModelTest(TestCase):
     def test_best_vegan_dish_with(self):
         v = Vendor.objects.create(name="test vendor",
                                   address="123 Main Street",
-                                  approval_status="approved")
+                                  approval_status=SF.APPROVED)
         d1 = VeganDish.objects.create(name="french toast")
         d2 = VeganDish.objects.create(name="tofu scramble")
         v.vegan_dishes.add(d1)
         v.vegan_dishes.add(d2)
 
         r = Review.objects.create(vendor=v, author=self.user,
-                                  approved=True,
+                                  approval_status=SF.APPROVED,
                                   best_vegan_dish=d1)
         r = Review.objects.create(vendor=v, author=self.user,
-                                  approved=True,
+                                  approval_status=SF.APPROVED,
                                   best_vegan_dish=d1)
-        r = Review.objects.create(vendor=v, author=self.user,  # NOQA
-                                  approved=True,
+        r = Review.objects.create(vendor=v, author=self.user,
+                                  approval_status=SF.APPROVED,
                                   best_vegan_dish=d2)
         self.assertEqual(v.best_vegan_dish(), d1)
 
     def test_best_vegan_dish_without(self):
         v = Vendor.objects.create(name="test vendor",
                                   address="123 Main Street",
-                                  approval_status="approved")
+                                  approval_status=SF.APPROVED)
         self.assertEqual(v.best_vegan_dish(), None)
 
     def test_approved_reviews_with_approved(self):
         v = Vendor.objects.create(name="test vendor",
                                   address="123 Main Street",
-                                  approval_status="approved")
+                                  approval_status=SF.APPROVED)
         r = Review.objects.create(vendor=v, author=self.user,
-                                  approved=True)
+                                  approval_status=SF.APPROVED)
         self.assertIn(r, v.approved_reviews())
 
     def test_approved_reviews_with_unapproved(self):
         v = Vendor.objects.create(name="test vendor",
                                   address="123 Main Street",
-                                  approval_status="approved")
+                                  approval_status=SF.APPROVED)
         r = Review.objects.create(vendor=v, author=self.user)
         self.assertNotIn(r, v.approved_reviews())
 
     def test_approved_reviews_with_none(self):
         v = Vendor.objects.create(name="test vendor",
                                   address="123 Main Street",
-                                  approval_status="approved")
+                                  approval_status=SF.APPROVED)
         self.assertEqual(v.approved_reviews().count(), 0)
 
     def test_unicode_method(self):
         v = Vendor.objects.create(name="test vendor",
                                   address="123 Main Street",
-                                  approval_status="approved")
+                                  approval_status=SF.APPROVED)
         self.assertEqual(str(v), "test vendor")
 
     def test_validate_pending(self):
         v = Vendor.objects.create(name="test vendor",
                                   address="123 Main Street",
-                                  approval_status="approved")
-        v.approval_status = "pending"
+                                  approval_status=SF.APPROVED)
+        v.approval_status = SF.PENDING
         self.assertRaises(ValidationError, v.save)
 
 
@@ -416,7 +424,7 @@ class VendorEmailTest(TestCase):
         email.send_new_vendor_approval.assert_not_called()
 
         # called now because it was approved
-        vendor.approval_status = "approved"
+        vendor.approval_status = SF.APPROVED
         vendor.save()
         email.send_new_vendor_approval.assert_called_with(vendor)
 
@@ -424,11 +432,11 @@ class VendorEmailTest(TestCase):
         email.send_new_vendor_approval.reset_mock()
 
         # not called when approval status changes away from approved
-        vendor.approval_status = "quarantined"
+        vendor.approval_status = SF.QUARANTINED
         vendor.save()
         email.send_new_vendor_approval.assert_not_called()
 
         # not called when approval status is changed back to approved
-        vendor.approval_status = "approved"
+        vendor.approval_status = SF.APPROVED
         vendor.save()
         email.send_new_vendor_approval.assert_not_called()

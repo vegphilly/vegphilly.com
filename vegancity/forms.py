@@ -157,7 +157,7 @@ class NewReviewForm(_BaseReviewForm):
         self.filter_dishes(vendor)
 
     class Meta(_BaseReviewForm.Meta):
-        exclude = ('approved', 'author',)
+        exclude = ('approval_status', 'author',)
         widgets = {
             'vendor': forms.HiddenInput,
         }
