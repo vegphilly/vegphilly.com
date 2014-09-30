@@ -7,6 +7,7 @@ from vegancity import views, geocode
 from vegancity.models import Review, Vendor, Neighborhood
 
 from vegancity.tests.utils import get_user
+from vegancity.fields import StatusField as SF
 
 from selenium.webdriver.firefox.webdriver import WebDriver
 from selenium.common.exceptions import WebDriverException
@@ -25,13 +26,13 @@ class SearchTest(TestCase):
 
     def setUp(self):
         self.v1 = Vendor.objects.create(
-            name="Test Vendor Foo", approval_status='approved')
+            name="Test Vendor Foo", approval_status=SF.APPROVED)
         self.v2 = Vendor.objects.create(
-            name="Test Vendor Bar", approval_status='approved')
+            name="Test Vendor Bar", approval_status=SF.APPROVED)
         self.v3 = Vendor.objects.create(
-            name="Test Vendor Baz", approval_status='approved')
+            name="Test Vendor Baz", approval_status=SF.APPROVED)
         self.v4 = Vendor.objects.create(
-            name="Test Vendor Bart", approval_status='approved')
+            name="Test Vendor Bart", approval_status=SF.APPROVED)
         self.factory = RequestFactory()
         geocode.geocode_address = Mock(return_value=(100, 100, "South Philly"))
 
@@ -53,7 +54,7 @@ class SearchTest(TestCase):
         self.assertEqual(response.content.count("Showing 4 vendors"), 1)
 
     def test_search_by_name_approved_only(self):
-        self.v4.approval_status = 'quarantined'
+        self.v4.approval_status = SF.QUARANTINED
         self.v4.save()
 
         request = self.factory.get('',

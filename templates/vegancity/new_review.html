@@ -2,33 +2,24 @@
 
 {% load url from future %}
 
-{% block headline %}Write a Review{% endblock %}
+{% block headline %}{{ vendor.name }}{% endblock %}
 
 {% block content %}
 <div class="container">
+  <form action="" method="post">
+    {% csrf_token %}
+    {{ form.vendor }}
 
-<h3>{{ vendor.name }}</h3>
-<form action="" method="post">
-  {% csrf_token %}
-  {{ form.vendor }}
-
-  {% if form.errors %}
+    {% if form.errors %}
     <span style="color: red">
       <p>There were errors in your submission. Please review the information below.</p>
       {{ form.errors }}
     </span>
 
-  {% endif %} 
+    {% endif %} 
 
-  <div class="row">
-    <div class="span6">
-      <div class="fieldWrapper">
-        <span style="color: red">{{ form.title.errors }}</span>
-        {{ form.title.label_tag }}
-        {{ form.title }}
-        {{ form.title.help_text }}
-      </div>
-
+    <div class="row">
+      <div class="span12">
       <div class="fieldWrapper">
         <span style="color: red">{{ form.food_rating.errors }}</span>
         {{ form.food_rating.label_tag }}
@@ -49,26 +40,12 @@
         {{ form.best_vegan_dish }}
         {{ form.best_vegan_dish.help_text }}
       </div>
-      
-      <div class="fieldWrapper vegan-dish-freeform">
-        <span style="color: red">{{ form.unlisted_vegan_dish.errors }}</span>
-        <label for="id_unlisted_vegan_dish">Favorite Vegan Dish <span class="if-unlisted">(if unlisted)</span></label>
-        {{ form.unlisted_vegan_dish }}
-        {{ form.unlisted_vegan_dish.help_text }}
-      </div>
 
       <div class="fieldWrapper">
-        <span style="color: red">{{ form.suggested_feature_tags.errors }}</span>
-        {{ form.suggested_feature_tags.label_tag }}
-        {{ form.suggested_feature_tags }}
-        {{ form.suggested_feature_tags.help_text }}
-      </div>
-
-      <div class="fieldWrapper">
-        <span style="color: red">{{ form.suggested_cuisine_tags.errors }}</span>
-        {{ form.suggested_cuisine_tags.label_tag }}
-        {{ form.suggested_cuisine_tags }}
-        {{ form.suggested_cuisine_tags.help_text }}
+        <span style="color: red">{{ form.title.errors }}</span>
+        {{ form.title.label_tag }}
+        {{ form.title }}
+        {{ form.title.help_text }}
       </div>
 
       <div class="fieldWrapper">
@@ -79,29 +56,10 @@
       </div>
 
       <input type="submit" class="btn btn-custom" value="Submit" id="id_submit">
-    </div> <!-- span6 -->
+    </div>
+    </div>
 
-    <div class="span6 visible-desktop">
-      <p>If the vegan dish you'd like to review is not available from the dropdown, please enter it in the textbox and we'll add it to the site so others can select it.</p>
-
-      </p>Please note that all reviews will be moderated by an admin. Negative reviews are welcome, but they will be scrutinized for slander. No trolling!</p>
-
-      <br><br>
-      <br><br>
-      <br><br>
-      <br><br>
-      <h3>{{ vendor.name }}</h3>
-
-      <h6>Current Cuisine Tags:</h6><p>{% for tag in vendor.cuisine_tags.all %}{{ tag }}{% if not forloop.last %}, {% endif %}{% endfor %}</p>
-
-      <h6>Current Feature Tags:</h6><p>{% for tag in vendor.feature_tags.all %}{{ tag }}{% if not forloop.last %}, {% endif %}{% endfor %}</p>
-
-      <a target="_BLANK" href="{% url 'vendor_detail' pk=vendor.id %}">more...</a>
-
-    </div> <!-- span6 -->
-  </div> <!-- row -->
-
-</form>
+  </form>
 </div>
 {% endblock content %}
 

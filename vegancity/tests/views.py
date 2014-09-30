@@ -4,6 +4,7 @@ from django.test.client import RequestFactory
 from vegancity import views
 from vegancity.models import Vendor, Neighborhood
 from vegancity.tests.utils import get_user
+from vegancity.fields import StatusField as SF
 
 
 class ViewTestCase(TestCase):
@@ -67,8 +68,8 @@ class HomeViewTest(ViewTestCase):
     def test_home_view_with_sane_values(self):
         Neighborhood.objects.create(name="West Philly")
         n2 = Neighborhood.objects.create(name="South Philly")
-        t1 = Vendor.objects.create(name="test 1", approval_status="approved")
-        t2 = Vendor.objects.create(name="test 2", approval_status="approved",
+        t1 = Vendor.objects.create(name="test 1", approval_status=SF.APPROVED)
+        t2 = Vendor.objects.create(name="test 2", approval_status=SF.APPROVED,
                                    neighborhood=n2)
         request = self.factory.get('')
         request.user = self.user

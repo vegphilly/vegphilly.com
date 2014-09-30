@@ -100,17 +100,6 @@ class VegProfileEditForm(forms.ModelForm):
 ### Vendor Forms
 ##############################
 
-class AdminVendorForm(forms.ModelForm):
-
-    class Meta:
-        model = models.Vendor
-
-    def __init__(self, *args, **kwargs):
-        super(AdminVendorForm, self).__init__(*args, **kwargs)
-        if not self.instance.created:
-            self.fields['approval_status'].initial = 'pending'
-
-
 class NewVendorForm(forms.ModelForm):
     "Form used for adding new vendors."
 
@@ -168,7 +157,7 @@ class NewReviewForm(_BaseReviewForm):
         self.filter_dishes(vendor)
 
     class Meta(_BaseReviewForm.Meta):
-        exclude = ('approved', 'author',)
+        exclude = ('approval_status', 'author',)
         widgets = {
             'vendor': forms.HiddenInput,
         }

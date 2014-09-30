@@ -15,6 +15,8 @@
 # You should have received a copy of the GNU General Public License
 # along with Vegancity.  If not, see <http://www.gnu.org/licenses/>.
 
+from django import forms as dj_forms
+
 from django.contrib.gis.admin.options import GeoModelAdmin
 
 from django.contrib import admin
@@ -31,11 +33,11 @@ import forms
 
 
 class ReviewAdmin(admin.ModelAdmin):
-    list_display = ('vendor', 'author', 'approved',
+    list_display = ('vendor', 'author', 'approval_status',
                     'suggested_feature_tags', 'suggested_cuisine_tags',
 
                     )
-    list_filter = ('approved', 'unlisted_vegan_dish')
+    list_filter = ('approval_status', 'unlisted_vegan_dish')
     form = forms.AdminEditReviewForm
 
 
@@ -44,13 +46,18 @@ class VendorVeganDishInline(admin.TabularInline):
     extra = 0
 
 
+class AdminVendorForm(dj_forms.ModelForm):
+    class Meta:
+        model = models.Vendor
+
+
 class VendorAdmin(GeoModelAdmin):
     readonly_fields = ('location', 'submitted_by')
     list_display = ('name', 'approval_status',
                     'created', 'submitted_by', 'neighborhood')
     list_filter = ('approval_status', 'submitted_by')
     ordering = ('name',)
-    form = forms.AdminVendorForm
+    form = AdminVendorForm
 
 
 class UserProfileInline(admin.StackedInline):

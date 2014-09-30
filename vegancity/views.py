@@ -34,6 +34,7 @@ from vegancity import forms
 from vegancity.models import (Vendor, CuisineTag, FeatureTag,
                               Neighborhood, User, Review)
 from vegancity import search
+from vegancity.fields import StatusField as SF
 
 search_logger = logging.getLogger('vegancity-search')
 
@@ -64,15 +65,18 @@ def _get_home_context(request):
     # they only get id and name, the necessary fields.
     annotated_vendor_select = (
         lambda query_prefix:
+        # TODO: remove string values
         Vendor.objects.raw(
             """
             SELECT V.id, V.name
             FROM vegancity_vendor V LEFT OUTER JOIN vegancity_review R
             ON V.id = R.vendor_id
-            WHERE V.approval_status = 'approved' AND R.approved='t'
-            %s
+            WHERE V.approval_status = '%(approved)s'
+            AND R.approval_status='%(approved)s'
+            %(query_prefix)s
             LIMIT 5
-            """ % query_prefix))
+            """ % {'approved': SF.APPROVED,
+                   'query_prefix': query_prefix}))
 
     top_5 = annotated_vendor_select(
         """

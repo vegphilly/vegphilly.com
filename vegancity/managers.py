@@ -23,6 +23,8 @@ from django.db.models import Count
 
 from djorm_pgfulltext.models import SearchManagerMixIn, SearchQuerySet
 from django.contrib.gis.db.models.query import GeoQuerySet
+from vegancity.fields import StatusField as SF
+
 
 ##########################################################>
 # Managers for models that relate to vendor
@@ -39,7 +41,7 @@ class SearchByVendorQuerySet(SearchQuerySet, GeoQuerySet):
         return vendors
 
     def with_vendors(self, vendors=None):
-        qs = self.filter(vendor__approval_status='approved')
+        qs = self.filter(vendor__approval_status=SF.APPROVED)
 
         if not (vendors is None):
             qs = qs.filter(vendor__in=vendors)
@@ -69,13 +71,13 @@ class SearchByVendorManager(SearchManagerMixIn, models.Manager):
 
 class ReviewManager(SearchByVendorManager):
     def approved(self):
-        return self.get_queryset().filter(approved=True)
+        return self.get_queryset().filter(approval_status=SF.APPROVED)
 
     def pending_approval(self):
         """returns all reviews that are not approved, which are
         otherwise impossible to get in a normal query (for now)."""
         normal_qs = self.get_queryset()
-        pending = normal_qs.filter(approved=False)
+        pending = normal_qs.filter(approval_status=SF.PENDING)
         return pending
 
 
@@ -83,10 +85,10 @@ class VendorQuerySet(GeoQuerySet, SearchQuerySet):
     def pending_approval(self):
         """returns all vendors that are not approved, which are
         otherwise impossible to get in a normal query."""
-        return self.filter(approval_status='pending')
+        return self.filter(approval_status=SF.PENDING)
 
     def approved(self):
-        return self.filter(approval_status='approved')
+        return self.filter(approval_status=SF.APPROVED)
 
     def without_reviews(self):
         from models import Review
@@ -96,7 +98,7 @@ class VendorQuerySet(GeoQuerySet, SearchQuerySet):
         return self.all().exclude(pk__in=review_vendors)
 
     def with_reviews(self):
-        return self.filter(review__approved=True)\
+        return self.filter(review__approval_status=SF.APPROVED)\
                    .distinct()\
                    .annotate(review_count=Count('review'))\
                    .order_by('-review_count')
