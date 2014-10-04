@@ -1,4 +1,5 @@
-/*global $ */
+var $ = require('jquery');
+
 $(document).ready(function() {
 
     function sanitizePhoneNumber(number) {
