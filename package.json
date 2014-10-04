@@ -5,8 +5,16 @@
     "type": "git",
     "url": "git://github.com/vegphilly/vegphilly.com.git"
   },
-  "dependencies": {},
+  "dependencies": {
+    "backbone": "^1.1.2",
+    "jquery": "^2.1.1",
+    "lodash": "^2.4.1"
+  },
   "devDependencies": {
-    "browserify": "3.2.0"
+    "browserify": "3.2.0",
+    "grunt": "0.4.5",
+    "grunt-browserify": "1.3.2",
+    "grunt-contrib-jshint": "^0.10.0",
+    "grunt-contrib-watch": "^0.6.1"
   }
 }
