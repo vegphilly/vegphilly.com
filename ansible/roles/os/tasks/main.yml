@@ -31,6 +31,9 @@
 - name: Install Node.js
   apt: pkg=nodejs state=latest
 
+- name: Install Grunt
+  command: npm install --global grunt-cli creates=/usr/bin/grunt
+
 
 ######################################
 ## supervisor
