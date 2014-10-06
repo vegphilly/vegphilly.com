@@ -5,6 +5,28 @@
 {% block headline %}Connect{% endblock headline %}
 
 {% block content %}
-<iframe src="https://www.google.com/calendar/embed?mode=AGENDA&height=600&wkst=1&bgcolor=%23FFFFFF&src=vegphilly%40gmail.com&color=%232F6309&ctz=America%2FNew_York" 
-	style=" border-width:0 " width="800" height="600" frameborder="0" scrolling="no"></iframe>
+<div id="connect_page_header">
+	<div id="twitter" class="main_elements-desktop">
+		<style type="text/css">
+			#twitter-widget-0 {width: 100% !important;
+								height: 100% !important;}
+		</style>
+		<a class="twitter-timeline" data-dnt="true" href="https://twitter.com/VegPhilly" data-widget-id="358633092363190272" data-chrome="noborders nofooter">Tweets by @VegPhilly</a>
+		<script>
+			!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+"://platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);};}(document,"script","twitter-wjs");
+		</script>
+    	<script>
+			$(window).load(function() {
+  				$("#twitter-widget-0").contents().find('head').append('<link href="/static/css/twitterstyle.css" rel="stylesheet" type="text/css" />');
+			});
+		</script>
+	</div>
+	<div id="google_calendar" class="main_elements-desktop">
+		<iframe src="https://www.google.com/calendar/embed?mode=AGENDA&height=600&wkst=1&bgcolor=%23FFFFFF&src=vegphilly%40gmail.com&color=%232F6309&ctz=America%2FNew_York" 
+		style=" border-width:0 " width="100%" height="100%" frameborder="0" scrolling="no"></iframe>
+	</div>
+</div>
+
+<link rel="stylesheet" href="{{ STATIC_URL }}css/connect_page.css">
+
 {% endblock content %}
