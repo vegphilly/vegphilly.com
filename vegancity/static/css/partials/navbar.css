@@ -20,6 +20,10 @@ p.vc-nav-item {
   letter-spacing: 0.02em;
 }
 
+.navbar .brand img {
+    width: 24px;
+}
+
 p.vc-nav-item:hover {
     color: #c0c1c2;
 }
