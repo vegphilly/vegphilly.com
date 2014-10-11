@@ -64,6 +64,8 @@
 {% endblock content %}
 
 {% block body_extra %}
-<script type="text/javascript" src="{{ STATIC_URL }}js/review_form.js"></script>
+<script type="text/javascript">
+    require('vegancity/review_form').init();
+</script>
 {% endblock body_extra %}
 
