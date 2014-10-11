@@ -14,8 +14,7 @@ module.exports = function(grunt) {
     );
 
     var aliases = [
-        // Externalize jquery module.
-        'jquery:'
+        './vegancity/js/lib/jquery.js:jquery'
     ];
 
     var aliasMappings = [
