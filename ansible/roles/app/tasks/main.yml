@@ -2,6 +2,8 @@
 - name: install pip requirements
   pip: requirements={{ project_dir }}/requirements.txt
 
+- name: install npm requirements
+  npm: path={{ project_dir }}
 
 - name: create app dir # todo just make sure this exists
   file: dest={{ project_dir }} owner={{ app_user }} state=directory
