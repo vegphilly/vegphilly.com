@@ -1,5 +1,7 @@
 .navbar-inner {
-   background: #2A3655 !important;
+   background: #2A3655;
+   /* Disable bootstrap header gradient in IE */
+   filter: none;
 }
 
 p.vc-nav-item {
