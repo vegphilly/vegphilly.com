@@ -1,9 +1,9 @@
 # -*- mode: ruby -*-
 
-Vagrant.configure("2") do |config|
+VAGRANTFILE_API_VERSION = "2"
 
-  config.vm.box = "precise32"
-  config.vm.box_url = "http://files.vagrantup.com/precise32.box"
+Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
+  config.vm.box = "chef/debian-7.4"
 
   # for selenium tests
   config.ssh.forward_x11 = true

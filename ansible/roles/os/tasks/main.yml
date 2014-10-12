@@ -4,16 +4,30 @@
 - name: install sys apt requirements
   apt: pkg={{ item }} state=latest
   with_items:
-    - postgresql
-    - postgresql-server-dev-9.1
-    - postgresql-contrib-9.1
-    - postgresql-9.1-postgis-2.0
     - python-software-properties
     - python-dev
     - python-pip
     - nginx
     - git
     - unzip
+    # required to add apt_key or apt_repository
+    - apt-transport-https
+
+- name: add postgresql apt-key
+  apt_key: url=https://www.postgresql.org/media/keys/ACCC4CF8.asc
+           state=present
+
+- name: add postgresql apt repo
+  apt_repository: repo="deb http://apt.postgresql.org/pub/repos/apt/ {{ ansible_distribution_release }}-pgdg main"
+                  state=present
+
+- name: install sys apt requirements
+  apt: pkg={{ item }} state=latest
+  with_items:
+    - postgresql-9.3
+    - postgresql-server-dev-9.3
+    - postgresql-contrib-9.3
+    - postgresql-9.3-postgis-2.1
 
 
 ######################################
