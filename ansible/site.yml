@@ -1,9 +1,9 @@
 - hosts: production_servers
   roles:
     - role: os
-    - role: production
     - role: db
     - role: proxy
+    - role: fetch_source_code
     - role: app
 
 - hosts: staging_servers
@@ -11,6 +11,7 @@
     - role: os
     - role: db
     - role: proxy
+    - role: fetch_source_code
     - role: app
 
 - hosts: dev_servers
