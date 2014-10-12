@@ -28,7 +28,7 @@
 - name: install app requirements for dev
   apt: pkg="{{ item }}" state=latest
   with_items:
-    - firefox
+    - iceweasel
     - xvfb
 
 - name: make postgres user '{{ db_user }}' a superuser
@@ -40,7 +40,7 @@
   pip: requirements={{ project_dir }}/dev_requirements.txt
 
 - name: write postgres permissions file with more perms
-  template: src=pg_hba.conf.j2 dest=/etc/postgresql/9.1/main/pg_hba.conf owner=postgres mode=640
+  template: src=pg_hba.conf.j2 dest=/etc/postgresql/9.3/main/pg_hba.conf owner=postgres mode=640
   notify:
     - restart postgres
 

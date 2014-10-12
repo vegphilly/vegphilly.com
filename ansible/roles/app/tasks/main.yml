@@ -17,7 +17,7 @@
 #################################
 
 - name: write postgres permissions file
-  template: src=pg_hba.conf.j2 dest=/etc/postgresql/9.1/main/pg_hba.conf owner=postgres mode=640
+  template: src=pg_hba.conf.j2 dest=/etc/postgresql/9.3/main/pg_hba.conf owner=postgres mode=640
   notify:
     - restart postgres
 

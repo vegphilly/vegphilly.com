@@ -3,27 +3,27 @@
 import os
 import sys
 
-REQUIRED_PACKAGES = ["python-software-properties", "ansible"]
+# these packages are required to *get* ansible, so cannot
+# be installed *through* ansible.
+REQUIRED_PACKAGES = ["python-dev", "python-pip"]
+
+
+def is_installed(package):
+    command_template = "dpkg -l | grep 'ii  %s '"
+    return_code = os.system(command_template % package)
+    return return_code == 0
 
 
 def install_dependencies():
-    for package in REQUIRED_PACKAGES:
-        command_template = "dpkg -l | grep 'ii  %s '"
-        return_code = os.system(command_template % package)
+    if not all(map(is_installed, REQUIRED_PACKAGES)):
+        os.system('apt-get update')
+        os.system('apt-get install -y %s' % " ".join(REQUIRED_PACKAGES))
 
-        if return_code != 0:
-            os.system("apt-get update")
-            os.system("apt-get install -y python-software-properties")
-            os.system("apt-add-repository -y ppa:rquillo/ansible")
-            # TODO: this shouldn't really go here, it should
-            # go in the ansible config
-            os.system("apt-add-repository -y ppa:ubuntugis/ppa")
-            os.system("apt-get update")
-            os.system("apt-get install -y ansible")
-            break
+    os.system("pip install ansible==1.7")
 
 
 def run_ansible(user, path, project_dir, app_user):
+    os.system("mkdir -p /etc/ansible")
     os.system("echo [dev_servers] > /etc/ansible/hosts")
     os.system("echo localhost >> /etc/ansible/hosts")
 
