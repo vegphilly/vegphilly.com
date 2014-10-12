@@ -1,4 +1,4 @@
-{% include "roles/app/templates/pg_hba.conf.j2" %}
+{% include "roles/db/templates/pg_hba.conf.j2" %}
 
 local   {{ test_db }}   {{ db_user }}                           trust
 local   all             {{ dev_user }}                          trust

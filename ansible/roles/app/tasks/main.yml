@@ -13,47 +13,6 @@
   shell: grunt chdir={{ project_dir }}
 
 #################################
-# postgres
-#################################
-
-- name: write postgres permissions file
-  template: src=pg_hba.conf.j2 dest=/etc/postgresql/9.3/main/pg_hba.conf owner=postgres mode=640
-  notify:
-    - restart postgres
-
-- name: restart postgres forcibly # TODO: I shouldn't have to do this
-  service: name=postgresql state=running
-
-- name: create postgres user {{ db_user }}
-  sudo: True
-  sudo_user: postgres
-  postgresql_user: name={{ db_user }} password={{ db_password }}
-  register: last_result
-
-- name: create database {{ db_name }}
-  sudo: True
-  sudo_user: postgres
-  postgresql_db: name={{ db_name }} owner={{ db_user }} encoding='UTF-8' lc_collate='en_US.UTF-8' lc_ctype='en_US.UTF-8' template='template0'
-  ignore_errors: True
-
-- name: make sure postgres is running # TODO make this a handler
-  service: name=postgresql state=running
-
-- name: add PostGIS extension to {{ db_name }} database
-  sudo: True
-  sudo_user: postgres
-  command: psql {{ db_name }} -c "CREATE EXTENSION IF NOT EXISTS postgis;"
-
-- name: add unaccent extension to {{ db_name }} database
-  sudo: True
-  sudo_user: postgres
-  command: psql {{ db_name }} -c "CREATE EXTENSION IF NOT EXISTS unaccent;"
-
-- name: make unaccent function immutable in {{ db_name }} database
-  sudo: True
-  sudo_user: postgres
-  command: psql {{ db_name }} -c "ALTER FUNCTION unaccent(text) IMMUTABLE;"
-
 #################################
 # setup app
 #################################

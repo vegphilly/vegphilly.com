@@ -4,9 +4,6 @@
 - name: restart supervisor
   service: name=supervisor state=restarted
 
-- name: restart postgres
-  service: name=postgresql state=restarted
-
 - name: restart gunicorn
   supervisorctl: name=vegphilly_gunicorn state=restarted
 
