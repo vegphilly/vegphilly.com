@@ -48,6 +48,9 @@
 - name: create configuration file for supervisor
   template: src=supervisord.conf.j2 dest=/etc/supervisord.conf owner=root group=root mode=755
 
+- name: start supervisor
+  service: name=supervisor state=started
+
 
 ######################################
 ## create necessary users/files
