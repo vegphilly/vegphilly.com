@@ -34,7 +34,7 @@ class CSVViewTest(TestCase):
         profile.save()
 
         expected_data = [
-            ['username', 'first_name', 'last_name', 'email'],
+            ['username', 'first name', 'last name', 'email address'],
             ['veggie_lover', 'veggie', 'lover', 'vl@example.com']
         ]
 
