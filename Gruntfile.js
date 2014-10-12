@@ -6,8 +6,8 @@ module.exports = function(grunt) {
     grunt.loadNpmTasks('grunt-browserify');
     grunt.loadNpmTasks('grunt-contrib-watch');
 
-    grunt.registerTask('dev', ['browserify:dev']);
-    grunt.registerTask('default', ['dev']);
+    grunt.registerTask('js', ['browserify:bundle']);
+    grunt.registerTask('default', ['js']);
 
     var files = grunt.file.expand(
         'vegancity/js/src/**/*.js'
@@ -34,7 +34,7 @@ module.exports = function(grunt) {
 
     grunt.initConfig({
         browserify: {
-            dev: {
+            bundle: {
                 src: files,
                 dest: './vegancity/static/js/bundle.js',
                 options: {
@@ -51,7 +51,7 @@ module.exports = function(grunt) {
             },
             js: {
                 files: files,
-                tasks: ['dev']
+                tasks: ['js']
             }
         }
     });
