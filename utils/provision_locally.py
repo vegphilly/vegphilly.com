@@ -2,6 +2,7 @@
 
 import os
 import sys
+import json
 
 # these packages are required to *get* ansible, so cannot
 # be installed *through* ansible.
@@ -22,16 +23,24 @@ def install_dependencies():
     os.system("pip install ansible==1.7")
 
 
-def run_ansible(user, path, project_dir, app_user):
+def run_ansible(user, path, project_dir):
     os.system("mkdir -p /etc/ansible")
-    os.system("echo [dev_servers] > /etc/ansible/hosts")
-    os.system("echo localhost >> /etc/ansible/hosts")
+    with open('/etc/ansible/hosts', 'w') as f:
+        f.write('[dev_servers]\n'
+                'localhost\n')
 
-    os.system('ansible-playbook %s '
-              '--connection=local --user=%s --sudo '
-              '--extra-vars "project_dir=%s '
-              'app_user=%s db_user=%s db_password=%s"'
-              % (path, user, project_dir, app_user, app_user, app_user))
+    extra_vars = json.dumps({
+        'project_dir': project_dir,
+        'app_user': user,
+        'db_user': user,
+        'password': user,
+    })
+
+    os.system("ansible-playbook "
+              "--sudo "
+              "--connection=local %s "
+              "--user=%s --extra-vars '%s'"
+              % (path, user, extra_vars))
 
 if __name__ == '__main__':
     install_dependencies()

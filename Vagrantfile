@@ -19,7 +19,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
   config.vm.provision :shell do |shell|
     shell.path = "utils/provision_locally.py"
-    shell.args = "vagrant /usr/local/vegphilly/ansible/site.yml /usr/local/vegphilly vagrant"
+    shell.args = "vagrant /usr/local/vegphilly/ansible/site.yml /usr/local/vegphilly"
   end
 
   config.vm.provider :virtualbox do |vb, override|
