@@ -7,7 +7,6 @@
     - python-software-properties
     - python-dev
     - python-pip
-    - nginx
     - git
     - unzip
     # required to add apt_key or apt_repository

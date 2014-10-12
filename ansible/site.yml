@@ -3,18 +3,21 @@
     - role: os
     - role: production
     - role: db
+    - role: proxy
     - role: app
 
 - hosts: staging_servers
   roles:
     - role: os
     - role: db
+    - role: proxy
     - role: app
 
 - hosts: dev_servers
   roles:
     - role: os
     - role: db
+    - role: proxy
     - role: app
     - role: dev
 
