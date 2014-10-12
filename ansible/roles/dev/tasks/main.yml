@@ -1,23 +1,6 @@
 # This playbook will add the additional settings necessary for the various
 # debug tools used in development. It also automatically loads a fixture.
 
-
-- name: drop database {{ db_name }}
-  sudo: True
-  sudo_user: postgres
-  postgresql_db: name={{ db_name }} state=absent
-
-- name: create database {{ db_name }}
-  sudo: True
-  sudo_user: postgres
-  postgresql_db: name={{ db_name }} owner={{ db_user }} encoding='UTF-8' lc_collate='en_US.UTF-8' lc_ctype='en_US.UTF-8' template='template0'
-  register: last_result # TODO: what is this?
-
-- name: add PostGIS extension to {{ db_name }} database
-  sudo: True
-  sudo_user: postgres
-  command: psql {{ db_name }} -c "CREATE EXTENSION IF NOT EXISTS postgis"
-
 - name: clobber settings_local with more dev settings
   template: src=settings_local.py.j2
             dest={{ project_dir }}/vegancity/settings_local.py
@@ -43,21 +26,6 @@
   template: src=pg_hba.conf.j2 dest=/etc/postgresql/9.3/main/pg_hba.conf owner=postgres mode=640
   notify:
     - restart postgres
-
-- name: run syncdb
-  sudo: True
-  sudo_user: "{{ app_user }}"
-  command: python {{ project_dir }}/manage.py syncdb --noinput
-
-- name: run migrate
-  sudo: True
-  sudo_user: "{{ app_user }}"
-  command: python {{ project_dir }}/manage.py migrate --noinput
-
-- name: run collectstatic
-  sudo: True
-  sudo_user: "{{ app_user }}"
-  command: python {{ project_dir }}/manage.py collectstatic --noinput
 
 - name: install dev fixture
   sudo: True
