@@ -1,0 +1,23 @@
+- name: install nginx
+  apt: pkg=nginx state=latest
+
+- name: ensure nginx is at the latest version
+  apt: pkg=nginx state=latest
+
+- name: write the nginx site config
+  template: src=nginx_vegphilly.conf.j2 dest=/etc/nginx/sites-available/{{ app_name }}
+  notify:
+    - restart nginx
+
+- name: activate the vegphilly nginx site
+  file: state=link src=/etc/nginx/sites-available/{{ app_name }} path=/etc/nginx/sites-enabled/{{ app_name }}
+  notify:
+    - restart nginx
+
+- name: delete default nginx site config
+  file: state=absent path=/etc/nginx/sites-enabled/default
+  notify:
+    - restart nginx
+
+- name: Ensure nginx is running
+  service: name=nginx state=running

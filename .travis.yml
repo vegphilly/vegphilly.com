@@ -9,6 +9,7 @@ install:
   - pip install -r requirements.txt --use-mirrors
   - pip install -r dev_requirements.txt --use-mirrors
   - pip install -q Django==$DJANGO --use-mirrors
+  - pip install psycopg2==2.5.1
   - npm install
 before_script:
   - sudo mkdir -p /var/log/vegphilly
@@ -27,7 +28,7 @@ before_script:
   - psql -c 'CREATE EXTENSION postgis_topology;' -U postgres -d vegphilly
   - echo -e "EMAIL_HOST_USER = 'foo'\nEMAIL_HOST_PASSWORD = 'bar'\n" >> vegancity/settings_local.py
 script:
-  - python manage.py test vegancity.PageLoadTest vegancity.FunctionalSearchTest || true
+  - python -Wall manage.py test vegancity.PageLoadTest vegancity.FunctionalSearchTest || true
   - coverage run --source=vegancity manage.py test --exclude-integration-tests
   - grunt browserify:bundle
 after_success:
