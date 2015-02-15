@@ -11,7 +11,7 @@
       <div class="nav-collapse collapse">
         <ul class="nav pull-right">
 	  <li><a href="{% url 'vendors' %}"><p class="vc-nav-item">Restaurants</p></a></li>
-	  <li><a href="{% url 'connect' %}"><p class="vc-nav-item">Connect</p></a></li>
+	  <!-- <li><a href="{% url 'connect' %}"><p class="vc-nav-item">Connect</p></a></li> -->
           <li><a href="{% url 'about' %}"><p class="vc-nav-item">About</p></a></li>
           {% if user.is_authenticated %}
           <li><a href="{% url 'my_account' %}"><p class="vc-nav-item">My Account (<u>{{user}}</u>)</p></a></li>
