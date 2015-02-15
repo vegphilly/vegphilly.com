@@ -1,12 +1,17 @@
 "use strict";
 
 module.exports = function(grunt) {
-    var debug = typeof grunt.option('dev') !== 'undefined';
+    var debug = typeof grunt.option('dev') !== 'undefined',
+        lint = typeof grunt.option('lint') !== 'undefined';
 
     grunt.loadNpmTasks('grunt-browserify');
     grunt.loadNpmTasks('grunt-contrib-watch');
+    grunt.loadNpmTasks('grunt-contrib-jshint');
 
-    grunt.registerTask('js', ['browserify:bundle']);
+    grunt.registerTask('js',
+        lint ? ['jshint', 'browserify:bundle'] :
+               ['browserify:bundle']
+    );
     grunt.registerTask('default', ['js']);
 
     var files = grunt.file.expand(
@@ -53,6 +58,12 @@ module.exports = function(grunt) {
                 files: files,
                 tasks: ['js']
             }
+        },
+        jshint: {
+            options: {
+                jshintrc: '.jshintrc'
+            },
+            all: ['Gruntfile.js'].concat(files)
         }
     });
 };

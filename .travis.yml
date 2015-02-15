@@ -30,6 +30,6 @@ before_script:
 script:
   - python -Wall manage.py test vegancity.PageLoadTest vegancity.FunctionalSearchTest || true
   - coverage run --source=vegancity manage.py test --exclude-integration-tests
-  - grunt browserify:bundle
+  - grunt jshint browserify:bundle
 after_success:
   - coveralls
