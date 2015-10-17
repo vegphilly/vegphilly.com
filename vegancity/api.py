@@ -40,7 +40,6 @@ class VendorResource(ModelResource):
                                   null=True,
                                   full=True)
 
-    best_vegan_dish = fields.CharField(null=True, readonly=True)
     food_rating = fields.IntegerField(null=True, readonly=True)
     atmosphere_rating = fields.IntegerField(null=True, readonly=True)
 
@@ -68,10 +67,6 @@ class VendorResource(ModelResource):
 
         return self.create_response(request, ctx)
 
-    def dehydrate_best_vegan_dish(self, bundle):
-        vegan_dish = bundle.obj.best_vegan_dish()
-        return vegan_dish
-
     def dehydrate_food_rating(self, bundle):
         return bundle.obj.food_rating()
 
@@ -91,10 +86,6 @@ class ReviewResource(ModelResource):
                                'author',
                                null=True,
                                full=True)
-    best_vegan_dish = fields.ToOneField('vegancity.api.VeganDishResource',
-                                        'best_vegan_dish',
-                                        null=True,
-                                        full=True)
 
     class Meta:
         queryset = models.Review.objects.approved().all()
@@ -102,7 +93,7 @@ class ReviewResource(ModelResource):
         fields = [
             'id', 'atmosphere_rating', 'food_rating', 'title', 'content',
             'created', 'modified', 'suggested_feature_tags',
-            'suggested_cuisine_tags', 'unlisted_vegan_dish'
+            'suggested_cuisine_tags'
         ]
 
 
@@ -136,14 +127,6 @@ class UserResource(ModelResource):
         queryset = User.objects.all()
         resource_name = 'user'
         fields = ['id', 'username', 'first_name', 'last_name']
-
-
-class VeganDishResource(ModelResource):
-
-    class Meta:
-        queryset = models.VeganDish.objects.all()
-        resource_name = 'vegan_dish'
-        fields = ['id', 'name']
 
 
 class VegLevelResource(ModelResource):

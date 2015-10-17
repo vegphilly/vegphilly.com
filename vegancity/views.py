@@ -293,11 +293,6 @@ def new_review(request, vendor_id):
     vendor = Vendor.objects.approved().get(id=vendor_id)
     ctx = {'vendor': vendor}
 
-    # Apply the vendor as an argument to the form constructor.
-    # This is done so that the form can be instantiated with
-    # a single argument like a normal form constructor.
-    form = functools.partial(forms.NewReviewForm, vendor)
-
     # a function for setting the author based on session data
     def apply_author(request, obj):
         obj.author = request.user
@@ -310,7 +305,7 @@ def new_review(request, vendor_id):
 
     response, obj = _generic_form_processing_view(
         request,
-        form,
+        forms.NewReviewForm,
         reverse("review_thanks", args=[vendor.id]),
         "vegancity/new_review.html",
         [apply_author],

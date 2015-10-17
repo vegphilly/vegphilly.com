@@ -94,27 +94,6 @@ class UserProfile(models.Model):
 ##########################################
 
 
-class VeganDish(models.Model):
-    name = models.CharField(max_length=255, unique=True)
-    created = models.DateTimeField(auto_now_add=True, null=True)
-
-    search_index = VectorField()
-
-    objects = SearchByVendorManager(
-        fields=('name'),
-        auto_update_search_field=True
-    )
-
-    def __unicode__(self):
-        return self.name
-
-    class Meta:
-        get_latest_by = "created"
-        ordering = ('name',)
-        verbose_name = "Vegan Dish"
-        verbose_name_plural = "Vegan Dishes"
-
-
 class Review(models.Model):
 
     # CORE FIELDS
@@ -144,12 +123,6 @@ class Review(models.Model):
         "How would you rate the atmosphere?",
         choices=tuple((i, i) for i in range(1, 5)),
         blank=True, null=True,)
-    best_vegan_dish = models.ForeignKey(
-        'VeganDish',
-        verbose_name="Favorite Vegan Dish",
-        blank=True, null=True)
-    unlisted_vegan_dish = models.CharField(max_length=100,
-                                           blank=True, null=True)
     suggested_feature_tags = models.CharField(max_length=255,
                                               blank=True, null=True)
     suggested_cuisine_tags = models.CharField(max_length=255,
@@ -212,7 +185,6 @@ class Vendor(models.Model):
 
     cuisine_tags = models.ManyToManyField('CuisineTag', null=True, blank=True)
     feature_tags = models.ManyToManyField('FeatureTag', null=True, blank=True)
-    vegan_dishes = models.ManyToManyField('VeganDish', null=True, blank=True)
 
     def needs_geocoding(self, previous_state=None):
         """
@@ -323,22 +295,6 @@ class Vendor(models.Model):
             # TODO: make this fail gracefully instead of causing a crashpage
             raise ValidationError("Cannot change a vendor back to PENDING!")
 
-    def best_vegan_dish(self):
-        "Returns the best vegan dish for the vendor"
-        dishes = collections.Counter()
-        vendor_reviews = Review.objects.approved()\
-                               .filter(vendor=self,
-                                       best_vegan_dish__isnull=False)
-
-        for review in vendor_reviews:
-            dishes[review.best_vegan_dish] += 1
-
-        if dishes:
-            best_vegan_dish, count = dishes.most_common(1)[0]
-            return best_vegan_dish
-        else:
-            return None
-
     def food_rating(self):
         reviews = Review.objects.approved().filter(vendor=self)
         food_ratings = [review.food_rating for review in reviews
@@ -377,44 +333,6 @@ class Vendor(models.Model):
         verbose_name = "Vendor"
         verbose_name_plural = "Vendors"
 
-
-def validate_vegan_dish(sender, instance, action, model, pk_set, **kwargs):
-
-    pre_clear_message = ('You can not clear vegandish relationships on '
-                         'this vendor, because there are reviews for this '
-                         'vendor that reference vegan_dish relationships. '
-                         '\n'
-                         'You may be seeing this message because you tried '
-                         'to add/remove a vegan_dish using the admin '
-                         'interface. Unfortunately, the admin interface is '
-                         'too stupid to add/remove one, it clears the list '
-                         'and then adds everything back in.'
-                         '\n'
-                         'Please have a developer delete this object.')
-
-    pre_remove_message = ('You cannot delete this vendor<->vegan_dish '
-                          'relationship because there are reviews for '
-                          'this vendor that reference this vegan dish. '
-                          'You probably don\'t want to do this anyway. '
-                          'If this is a mistake, please have a developer '
-                          'delete this object.')
-
-    vendor_has_vegan_dishes = (instance.vegan_dishes.count() > 0)
-    vendor_has_vegan_dish_reviews = (instance.review_set
-                                     .filter(best_vegan_dish__isnull=False)
-                                     .count() > 0)
-
-    if vendor_has_vegan_dishes and vendor_has_vegan_dish_reviews:
-        if action == 'pre_clear':
-            raise ValidationError(pre_clear_message)
-
-        elif action == 'pre_remove':
-            if instance.review_set\
-                       .filter(best_vegan_dish__in=pk_set)\
-                       .count() > 0:
-                raise ValidationError(pre_remove_message)
-
-m2m_changed.connect(validate_vegan_dish, sender=Vendor.vegan_dishes.through)
 
 #######################################
 # TAGS

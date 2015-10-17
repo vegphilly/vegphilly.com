@@ -8,57 +8,47 @@ from django.db import models
 class Migration(SchemaMigration):
 
     def forwards(self, orm):
-        # Adding field 'Review.search_index'
-        db.add_column(u'vegancity_review', 'search_index',
-                      self.gf('djorm_pgfulltext.fields.VectorField')(default='', null=True, db_index=True),
-                      keep_default=False)
+        # Deleting model 'VeganDish'
+        db.delete_table(u'vegancity_vegandish')
 
-        # Adding field 'FeatureTag.search_index'
-        db.add_column(u'vegancity_featuretag', 'search_index',
-                      self.gf('djorm_pgfulltext.fields.VectorField')(default='', null=True, db_index=True),
-                      keep_default=False)
+        # Deleting field 'Review.best_vegan_dish'
+        db.delete_column(u'vegancity_review', 'best_vegan_dish_id')
 
-        # Adding field 'Vendor.search_index'
-        db.add_column(u'vegancity_vendor', 'search_index',
-                      self.gf('djorm_pgfulltext.fields.VectorField')(default='', null=True, db_index=True),
-                      keep_default=False)
+        # Deleting field 'Review.unlisted_vegan_dish'
+        db.delete_column(u'vegancity_review', 'unlisted_vegan_dish')
 
-        # Adding field 'VeganDish.search_index'
-        db.add_column(u'vegancity_vegandish', 'search_index',
-                      self.gf('djorm_pgfulltext.fields.VectorField')(default='', null=True, db_index=True),
-                      keep_default=False)
-
-        # Adding field 'CuisineTag.search_index'
-        db.add_column(u'vegancity_cuisinetag', 'search_index',
-                      self.gf('djorm_pgfulltext.fields.VectorField')(default='', null=True, db_index=True),
-                      keep_default=False)
-
-        try:
-            orm.Vendor.objects.update_search_field()
-            orm.Review.objects.update_search_field()
-            orm.CuisineTag.objects.update_search_field()
-            orm.FeatureTag.objects.update_search_field()
-            orm.VeganDish.objects.update_search_field()
-        except:
-            pass
-
+        # Removing M2M table for field vegan_dishes on 'Vendor'
+        db.delete_table(db.shorten_name(u'vegancity_vendor_vegan_dishes'))
 
 
     def backwards(self, orm):
-        # Deleting field 'Review.search_index'
-        db.delete_column(u'vegancity_review', 'search_index')
+        # Adding model 'VeganDish'
+        db.create_table(u'vegancity_vegandish', (
+            ('search_index', self.gf('djorm_pgfulltext.fields.VectorField')(default='', null=True, db_index=True)),
+            (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
+            ('name', self.gf('django.db.models.fields.CharField')(max_length=255, unique=True)),
+            ('created', self.gf('django.db.models.fields.DateTimeField')(auto_now_add=True, null=True, blank=True)),
+        ))
+        db.send_create_signal(u'vegancity', ['VeganDish'])
 
-        # Deleting field 'FeatureTag.search_index'
-        db.delete_column(u'vegancity_featuretag', 'search_index')
+        # Adding field 'Review.best_vegan_dish'
+        db.add_column(u'vegancity_review', 'best_vegan_dish',
+                      self.gf('django.db.models.fields.related.ForeignKey')(to=orm['vegancity.VeganDish'], null=True, blank=True),
+                      keep_default=False)
 
-        # Deleting field 'Vendor.search_index'
-        db.delete_column(u'vegancity_vendor', 'search_index')
+        # Adding field 'Review.unlisted_vegan_dish'
+        db.add_column(u'vegancity_review', 'unlisted_vegan_dish',
+                      self.gf('django.db.models.fields.CharField')(max_length=100, null=True, blank=True),
+                      keep_default=False)
 
-        # Deleting field 'VeganDish.search_index'
-        db.delete_column(u'vegancity_vegandish', 'search_index')
-
-        # Deleting field 'CuisineTag.search_index'
-        db.delete_column(u'vegancity_cuisinetag', 'search_index')
+        # Adding M2M table for field vegan_dishes on 'Vendor'
+        m2m_table_name = db.shorten_name(u'vegancity_vendor_vegan_dishes')
+        db.create_table(m2m_table_name, (
+            ('id', models.AutoField(verbose_name='ID', primary_key=True, auto_created=True)),
+            ('vendor', models.ForeignKey(orm[u'vegancity.vendor'], null=False)),
+            ('vegandish', models.ForeignKey(orm[u'vegancity.vegandish'], null=False))
+        ))
+        db.create_unique(m2m_table_name, ['vendor_id', 'vegandish_id'])
 
 
     models = {
@@ -80,7 +70,7 @@ class Migration(SchemaMigration):
             'date_joined': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime.now'}),
             'email': ('django.db.models.fields.EmailField', [], {'max_length': '75', 'blank': 'True'}),
             'first_name': ('django.db.models.fields.CharField', [], {'max_length': '30', 'blank': 'True'}),
-            'groups': ('django.db.models.fields.related.ManyToManyField', [], {'to': u"orm['auth.Group']", 'symmetrical': 'False', 'blank': 'True'}),
+            'groups': ('django.db.models.fields.related.ManyToManyField', [], {'symmetrical': 'False', 'related_name': "u'user_set'", 'blank': 'True', 'to': u"orm['auth.Group']"}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'is_active': ('django.db.models.fields.BooleanField', [], {'default': 'True'}),
             'is_staff': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
@@ -88,7 +78,7 @@ class Migration(SchemaMigration):
             'last_login': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime.now'}),
             'last_name': ('django.db.models.fields.CharField', [], {'max_length': '30', 'blank': 'True'}),
             'password': ('django.db.models.fields.CharField', [], {'max_length': '128'}),
-            'user_permissions': ('django.db.models.fields.related.ManyToManyField', [], {'to': u"orm['auth.Permission']", 'symmetrical': 'False', 'blank': 'True'}),
+            'user_permissions': ('django.db.models.fields.related.ManyToManyField', [], {'symmetrical': 'False', 'related_name': "u'user_set'", 'blank': 'True', 'to': u"orm['auth.Permission']"}),
             'username': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '30'})
         },
         u'contenttypes.contenttype': {
@@ -97,15 +87,6 @@ class Migration(SchemaMigration):
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'model': ('django.db.models.fields.CharField', [], {'max_length': '100'}),
             'name': ('django.db.models.fields.CharField', [], {'max_length': '100'})
-        },
-        u'vegancity.blogentry': {
-            'Meta': {'ordering': "('-created',)", 'object_name': 'BlogEntry'},
-            'author': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['auth.User']"}),
-            'body': ('django.db.models.fields.TextField', [], {}),
-            'created': ('django.db.models.fields.DateTimeField', [], {'auto_now_add': 'True', 'blank': 'True'}),
-            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'modified': ('django.db.models.fields.DateTimeField', [], {'auto_now': 'True', 'blank': 'True'}),
-            'title': ('django.db.models.fields.CharField', [], {'max_length': '255'})
         },
         u'vegancity.cuisinetag': {
             'Meta': {'ordering': "('name',)", 'object_name': 'CuisineTag'},
@@ -131,10 +112,9 @@ class Migration(SchemaMigration):
         },
         u'vegancity.review': {
             'Meta': {'ordering': "('created',)", 'object_name': 'Review'},
-            'approved': ('django.db.models.fields.BooleanField', [], {'default': 'False', 'db_index': 'True'}),
+            'approval_status': ('vegancity.fields.StatusField', [], {'default': "'pending'", 'max_length': '100', 'db_index': 'True'}),
             'atmosphere_rating': ('django.db.models.fields.IntegerField', [], {'null': 'True', 'blank': 'True'}),
             'author': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['auth.User']"}),
-            'best_vegan_dish': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['vegancity.VeganDish']", 'null': 'True', 'blank': 'True'}),
             'content': ('django.db.models.fields.TextField', [], {}),
             'created': ('django.db.models.fields.DateTimeField', [], {'auto_now_add': 'True', 'blank': 'True'}),
             'food_rating': ('django.db.models.fields.IntegerField', [], {'null': 'True', 'blank': 'True'}),
@@ -144,7 +124,6 @@ class Migration(SchemaMigration):
             'suggested_cuisine_tags': ('django.db.models.fields.CharField', [], {'max_length': '255', 'null': 'True', 'blank': 'True'}),
             'suggested_feature_tags': ('django.db.models.fields.CharField', [], {'max_length': '255', 'null': 'True', 'blank': 'True'}),
             'title': ('django.db.models.fields.CharField', [], {'max_length': '255', 'null': 'True', 'blank': 'True'}),
-            'unlisted_vegan_dish': ('django.db.models.fields.CharField', [], {'max_length': '100', 'null': 'True', 'blank': 'True'}),
             'vendor': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['vegancity.Vendor']"})
         },
         u'vegancity.userprofile': {
@@ -154,13 +133,6 @@ class Migration(SchemaMigration):
             'karma_points': ('django.db.models.fields.IntegerField', [], {'null': 'True', 'blank': 'True'}),
             'mailing_list': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             'user': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['auth.User']", 'unique': 'True'})
-        },
-        u'vegancity.vegandish': {
-            'Meta': {'ordering': "('name',)", 'object_name': 'VeganDish'},
-            'created': ('django.db.models.fields.DateTimeField', [], {'auto_now_add': 'True', 'null': 'True', 'blank': 'True'}),
-            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'name': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '255'}),
-            'search_index': ('djorm_pgfulltext.fields.VectorField', [], {'default': "''", 'null': 'True', 'db_index': 'True'})
         },
         u'vegancity.veglevel': {
             'Meta': {'object_name': 'VegLevel'},
@@ -172,7 +144,7 @@ class Migration(SchemaMigration):
         u'vegancity.vendor': {
             'Meta': {'ordering': "('name',)", 'object_name': 'Vendor'},
             'address': ('django.db.models.fields.TextField', [], {'null': 'True'}),
-            'approval_status': ('django.db.models.fields.CharField', [], {'default': "'pending'", 'max_length': '100', 'db_index': 'True'}),
+            'approval_status': ('vegancity.fields.StatusField', [], {'default': "'pending'", 'max_length': '100', 'db_index': 'True'}),
             'created': ('django.db.models.fields.DateTimeField', [], {'auto_now_add': 'True', 'null': 'True', 'blank': 'True'}),
             'cuisine_tags': ('django.db.models.fields.related.ManyToManyField', [], {'symmetrical': 'False', 'to': u"orm['vegancity.CuisineTag']", 'null': 'True', 'blank': 'True'}),
             'feature_tags': ('django.db.models.fields.related.ManyToManyField', [], {'symmetrical': 'False', 'to': u"orm['vegancity.FeatureTag']", 'null': 'True', 'blank': 'True'}),
@@ -186,7 +158,6 @@ class Migration(SchemaMigration):
             'search_index': ('djorm_pgfulltext.fields.VectorField', [], {'default': "''", 'null': 'True', 'db_index': 'True'}),
             'submitted_by': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['auth.User']", 'null': 'True', 'blank': 'True'}),
             'veg_level': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['vegancity.VegLevel']", 'null': 'True', 'blank': 'True'}),
-            'vegan_dishes': ('django.db.models.fields.related.ManyToManyField', [], {'symmetrical': 'False', 'to': u"orm['vegancity.VeganDish']", 'null': 'True', 'blank': 'True'}),
             'website': ('django.db.models.fields.URLField', [], {'max_length': '200', 'null': 'True', 'blank': 'True'})
         }
     }

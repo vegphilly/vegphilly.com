@@ -49,12 +49,6 @@
             <td class="review_number">{{ review.food_rating|graphical_rating|safe }}</td>
           </tr>
           {% endif %}
-          {% if review.best_vegan_dish %}
-          <tr>
-            <td style="height:42px">Best vegan dish:</td>
-            <td class="review_number">{{ review.best_vegan_dish }}</td>
-          </tr>
-          {% endif %}
         </table>
         <h6>{{ review.content|linebreaks }}</h6>
       </div>

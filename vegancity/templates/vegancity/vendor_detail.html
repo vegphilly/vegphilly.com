@@ -77,12 +77,6 @@
               <td><p>{{ vendor.atmosphere_rating|graphical_rating|safe }}</p></td>
             </tr>
           {% endif %}
-          {% if vendor.best_vegan_dish %}
-            <tr>
-              <td>Best Vegan Dish:</td>
-              <td>{{ vendor.best_vegan_dish }}</td>
-            </tr>
-          {% endif %}
           {% if vendor.cuisine_tags.all %}
             <tr>
               <td>Cuisine(s): </td>

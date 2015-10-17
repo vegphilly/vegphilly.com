@@ -98,47 +98,13 @@ class NewVendorForm(forms.ModelForm):
 ##############################
 
 
-class _BaseReviewForm(forms.ModelForm):
-
-    """Base Class for making Review forms.
-
-    This class should not be instantiated directly."""
-
-    def clean(self):
-        cleaned_data = super(_BaseReviewForm, self).clean()
-        chose_best = cleaned_data.get("best_vegan_dish")
-        entered_unlisted = cleaned_data.get("unlisted_vegan_dish")
-
-        if chose_best and entered_unlisted:
-            raise forms.ValidationError("Can't have both 'Best Vegan dish' "
-                                        "and 'Favorite Vegan Dish'. Please "
-                                        "choose one.")
-
-        return cleaned_data
-
-    def filter_dishes(self, vendor):
-        self.fields['best_vegan_dish'].queryset = vendor.vegan_dishes.all()
-
+class ReviewForm(forms.ModelForm):
     class Meta:
         model = models.Review
 
 
-class AdminEditReviewForm(_BaseReviewForm):
-
-    def __init__(self, *args, **kwargs):
-        super(AdminEditReviewForm, self).__init__(*args, **kwargs)
-
-        if self.instance.pk:
-            self.filter_dishes(self.instance.vendor)
-
-
-class NewReviewForm(_BaseReviewForm):
-
-    def __init__(self, vendor, *args, **kwargs):
-        super(NewReviewForm, self).__init__(*args, **kwargs)
-        self.filter_dishes(vendor)
-
-    class Meta(_BaseReviewForm.Meta):
+class NewReviewForm(ReviewForm):
+    class Meta(ReviewForm.Meta):
         exclude = ('approval_status', 'author',)
         widgets = {
             'vendor': forms.HiddenInput,
