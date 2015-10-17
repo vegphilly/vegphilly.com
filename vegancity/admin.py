@@ -20,13 +20,8 @@ class ReviewAdmin(admin.ModelAdmin):
                     'suggested_feature_tags', 'suggested_cuisine_tags',
 
                     )
-    list_filter = ('approval_status', 'unlisted_vegan_dish')
-    form = forms.AdminEditReviewForm
-
-
-class VendorVeganDishInline(admin.TabularInline):
-    model = models.Vendor.vegan_dishes.through
-    extra = 0
+    list_filter = ('approval_status',)
+    form = forms.ReviewForm
 
 
 class AdminVendorForm(dj_forms.ModelForm):
@@ -51,11 +46,6 @@ class UserProfileAdmin(UserAdmin):
     inlines = [UserProfileInline]
 
 
-class VeganDishAdmin(admin.ModelAdmin):
-    inlines = (VendorVeganDishInline,)
-    list_display = ('name',)
-    list_display_links = ('name',)
-
 #####################################
 ## ADMIN REGISTRATION
 #####################################
@@ -66,7 +56,6 @@ admin.site.register(models.UserProfile)
 
 admin.site.register(models.Vendor, VendorAdmin)
 admin.site.register(models.Review, ReviewAdmin)
-admin.site.register(models.VeganDish, VeganDishAdmin)
 admin.site.register(models.CuisineTag)
 admin.site.register(models.FeatureTag)
 admin.site.register(models.Neighborhood)

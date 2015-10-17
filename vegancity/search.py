@@ -2,7 +2,7 @@
 
 import geocode
 
-from vegancity.models import FeatureTag, CuisineTag, Vendor, VeganDish, Review
+from vegancity.models import FeatureTag, CuisineTag, Vendor, Review
 
 from django.contrib.gis.geos import Point
 
@@ -13,7 +13,6 @@ def master_search(query, initial_queryset=None):
                       Vendor.objects.approved().search(query) |
                       FeatureTag.objects.vendor_search(query) |
                       CuisineTag.objects.vendor_search(query) |
-                      VeganDish.objects.vendor_search(query) |
                       Review.objects.approved().vendor_search(query))
 
     if initial_queryset:

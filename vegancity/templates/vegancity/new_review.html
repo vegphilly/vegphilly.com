@@ -34,13 +34,6 @@
         {{ form.atmosphere_rating.help_text }}
       </div>
 
-      <div class="fieldWrapper vegan-dish-choices">
-        <span style="color: red">{{ form.best_vegan_dish.errors }}</span>
-        {{ form.best_vegan_dish.label_tag }}
-        {{ form.best_vegan_dish }}
-        {{ form.best_vegan_dish.help_text }}
-      </div>
-
       <div class="fieldWrapper">
         <span style="color: red">{{ form.title.errors }}</span>
         {{ form.title.label_tag }}
@@ -62,10 +55,4 @@
   </form>
 </div>
 {% endblock content %}
-
-{% block body_extra %}
-<script type="text/javascript">
-    require('vegancity/review_form').init();
-</script>
-{% endblock body_extra %}
 

@@ -6,76 +6,9 @@ from django.contrib.gis.geos import Point
 from django.test import TestCase
 
 from vegancity import email, geocode
-from vegancity.models import Review, Vendor, Neighborhood, VeganDish
+from vegancity.models import Review, Vendor, Neighborhood
 from vegancity.tests.utils import get_user
 from vegancity.fields import StatusField as SF
-
-
-class VendorVeganDishValidationTest(TestCase):
-
-    """
-    Tests that trying to delete vegan dish relationships for
-    vendors that have reviews will signal an error.
-    """
-
-    def setUp(self):
-        self.user = get_user()
-
-        self.vendor = Vendor(name="Test Vendor",
-                             address="123 Main St")
-        self.vendor.save()
-
-        self.vegan_dish1 = VeganDish(name="Tofu Scramble")
-        self.vegan_dish1.save()
-
-        self.vegan_dish2 = VeganDish(name="Tempeh Hash")
-        self.vegan_dish2.save()
-
-        self.review1 = Review(vendor=self.vendor,
-                              author=self.user,
-                              content="ahhhh")
-        self.review1.save()
-
-        self.vendor.vegan_dishes.add(self.vegan_dish1)
-        self.vendor.vegan_dishes.add(self.vegan_dish2)
-
-    def test_can_delete_relationship_without_any_reviews(self):
-        self.assertEqual(self.vendor.vegan_dishes.count(), 2)
-
-        self.vendor.vegan_dishes.remove(self.vegan_dish1)
-
-        self.assertEqual(self.vendor.vegan_dishes.count(), 1)
-
-    def test_can_delete_relationship_with_reviews_on_other_vegan_dish(self):
-        self.review1.best_vegan_dish = self.vegan_dish1
-        self.review1.save()
-
-        self.assertEqual(self.vendor.vegan_dishes.count(), 2)
-
-        self.vendor.vegan_dishes.remove(self.vegan_dish2)
-
-        self.assertEqual(self.vendor.vegan_dishes.count(), 1)
-
-    def test_can_clear_relationship_without_any_reviews(self):
-        self.assertEqual(self.vendor.vegan_dishes.count(), 2)
-
-        self.vendor.vegan_dishes.clear()
-
-        self.assertEqual(self.vendor.vegan_dishes.count(), 0)
-
-    def test_cant_clear_relationship_with_any_reviews(self):
-        self.review1.best_vegan_dish = self.vegan_dish1
-        self.review1.save()
-
-        self.assertRaises(ValidationError, self.vendor.vegan_dishes.clear)
-
-    def test_cant_delete_relationship_with_reviews(self):
-        self.review1.best_vegan_dish = self.vegan_dish1
-        self.review1.save()
-
-        self.assertRaises(ValidationError,
-                          self.vendor.vegan_dishes.remove,
-                          self.vegan_dish1)
 
 
 class WithVendorsManagerTest(TestCase):
@@ -339,32 +272,6 @@ class VendorModelTest(TestCase):
         # Floored Average
         self.assertEqual(vendor.food_rating(), 3)
         self.assertEqual(vendor.atmosphere_rating(), 3)
-
-    def test_best_vegan_dish_with(self):
-        v = Vendor.objects.create(name="test vendor",
-                                  address="123 Main Street",
-                                  approval_status=SF.APPROVED)
-        d1 = VeganDish.objects.create(name="french toast")
-        d2 = VeganDish.objects.create(name="tofu scramble")
-        v.vegan_dishes.add(d1)
-        v.vegan_dishes.add(d2)
-
-        r = Review.objects.create(vendor=v, author=self.user,
-                                  approval_status=SF.APPROVED,
-                                  best_vegan_dish=d1)
-        r = Review.objects.create(vendor=v, author=self.user,
-                                  approval_status=SF.APPROVED,
-                                  best_vegan_dish=d1)
-        r = Review.objects.create(vendor=v, author=self.user,
-                                  approval_status=SF.APPROVED,
-                                  best_vegan_dish=d2)
-        self.assertEqual(v.best_vegan_dish(), d1)
-
-    def test_best_vegan_dish_without(self):
-        v = Vendor.objects.create(name="test vendor",
-                                  address="123 Main Street",
-                                  approval_status=SF.APPROVED)
-        self.assertEqual(v.best_vegan_dish(), None)
 
     def test_approved_reviews_with_approved(self):
         v = Vendor.objects.create(name="test vendor",
