@@ -8,7 +8,8 @@
     bottom: 0;
     left: 0;
     right: 0;
-    opacity: .7;
+    opacity: .9;
+    border-top: 1px solid #eee;
 }
 
 #footer ul {
@@ -47,5 +48,5 @@
 }
 
 #footer a {
-  margin-right: 20px;
+  margin-right: 8px;
 }
