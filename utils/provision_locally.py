@@ -6,7 +6,7 @@ import json
 
 # these packages are required to *get* ansible, so cannot
 # be installed *through* ansible.
-REQUIRED_PACKAGES = ["python-dev", "python-pip"]
+REQUIRED_PACKAGES = ["python-dev", "python-pip", "libffi-dev"]
 
 
 def is_installed(package):
