@@ -1,10 +1,3 @@
-'use strict';
-
-var _ = require('lodash'),
-    $ = require('jquery'),
-    google = require('google');
-
-
 /////////////////////////////////////
 // TEMPLATES
 /////////////////////////////////////
@@ -37,14 +30,19 @@ var summaryCaptionTemplate = [
 /////////////////////////////////////
 
 var vendorMap = {
-    initialize: function(map_container_id, vendors, mapType, autoResize, defaultCenter) {
+    initialize: function(map_container_id, vendors, mapType, autoResize) {
+        var center;
         this.vendors = vendors;
         this.captionBubble = new google.maps.InfoWindow();
         this.map = null;
         this.markers = {};
         this.markerImage = null;
 
-        var center = defaultCenter || this.getBounds().getCenter();
+        if (typeof defaultCenter === "undefined") {
+            center = this.getBounds().getCenter();
+        } else {
+            center = defaultCenter;
+        }
 
         this.map = new google.maps.Map($(map_container_id).get(0),
                                        {
@@ -121,14 +119,7 @@ var vendorMap = {
                 vendorMap.captionBubble.setContent(bodyText);
                 vendorMap.captionBubble.open(vendorMap.map, this);
     	    });
-        }
+        };
         return marker;
     }
 };
-
-module.exports = {
-    vendorMap: vendorMap,
-    vegLevelCategoryMapping: vegLevelCategoryMapping,
-    vegCategoryMarkerMapping: vegCategoryMarkerMapping
-};
-

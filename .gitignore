@@ -5,12 +5,8 @@ settings_local.py
 # static assets are collected to static/
 /static
 
-# JS bundle is served from here during development
-/vegancity/static/js
-
 # misc dev/os file lint, kept here for convenience
 *.pyc
 *.pot
 .vagrant
 .DS_Store
-node_modules/
