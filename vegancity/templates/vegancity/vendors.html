@@ -36,9 +36,10 @@
   <link rel="stylesheet" href="{{ STATIC_URL }}css/vendors.css">
   <link rel="stylesheet" media="(max-width: 700px)" href="{{ STATIC_URL }}css/vendors_mobile.css">
 
-<script type="text/javascript">
-(function() {
-    var google = require('google');
+  <script type="text/javascript" src="//maps.googleapis.com/maps/api/js?sensor=false"></script>
+  <script src="//cdnjs.cloudflare.com/ajax/libs/underscore.js/1.4.4/underscore-min.js"></script>
+  <script src="//cdnjs.cloudflare.com/ajax/libs/backbone.js/1.0.0/backbone-min.js"></script>
+  <script type="text/javascript">
 
     var autoResize = {% if has_get_params %}true{% else %}false{% endif %};
     var defaultCenter = new google.maps.LatLng({{ center_latitude }}, {{ center_longitude }});
@@ -59,13 +60,9 @@
     {% endfor %}
     ];
 
-    require('vegancity/vendors').init({
-        autoResize: autoResize,
-        defaultCenter: defaultCenter,
-        vendors: vendors
-    });
-}());
-</script>
+  </script>
+  <script type="text/javascript" src="{{ STATIC_URL }}js/map.js"></script>
+  <script type="text/javascript" src="{{ STATIC_URL }}js/vendors.js"></script>
 </body>
 {% endblock body %}
 

@@ -101,8 +101,6 @@
 
 
 {% block body_extra %}
-<script type="text/javascript">
-    require('vegancity/vendor_form').init();
-</script>
+  <script type="text/javascript" src="{{ STATIC_URL }}js/vendor_form.js"></script>
 {% endblock body_extra %}
 

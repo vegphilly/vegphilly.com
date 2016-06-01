@@ -2,15 +2,9 @@
 - name: install pip requirements
   pip: requirements={{ project_dir }}/requirements.txt
 
+
 - name: create app dir # todo just make sure this exists
   file: dest={{ project_dir }} owner={{ app_user }} state=directory
-
-- name: install npm requirements
-  npm: path={{ project_dir }}
-
-# Rebuild the JS bundle.
-- name: run grunt
-  shell: grunt chdir={{ project_dir }}
 
 #################################
 # setup app
