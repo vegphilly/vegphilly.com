@@ -10,5 +10,5 @@ django-debug-toolbar-template-timings==0.6.1
 selenium==2.35.0
 PyVirtualDisplay==0.1.2
 django-extensions==1.2.5
-Werkzeug==0.9.4
+Werkzeug==0.15.3
 django-pdb==0.3.2
