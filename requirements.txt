@@ -1,4 +1,4 @@
-Django==1.6
+Django==1.11.29
 South==0.8.1
 gunicorn==17.5
 django-tastypie==0.9.15
